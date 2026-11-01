@@ -10,8 +10,12 @@
 - 提交使用正式分支、Conventional Commits、人类作者、SSH 签名及 `Co-authored-by` 的实际 Agent 通用名；禁止模型档位、版本、会话标记及 Agent 专用签名密钥。未经明确授权不创建远端或推送。
 - 验证入口由 README 与实际 package 定义确定；最终核对工作树和每项测试真实退出状态。
 
+## 验证与文档站
+
+主机测试使用 `python -m unittest discover -s tests -v`。文档链接测试使用 `npm --prefix docs-site test`，文档构建使用 `npm --prefix docs-site run docs:build`；先核对当前脚本定义，再按改动选择验证。文档站采用 VitePress 默认主题，从 `repo-docs/` 引用正文，产物与原生构建分离。文档通过不能记作设备验收。
+
 ## Repo docs
 
 `repo-docs/` is the living guide; start with [the reading path](repo-docs/README.md) and [the main walkthrough](repo-docs/walkthroughs/one-real-run.md).
 This repo's `repo-docs/` guide is reader-facing Chinese documentation. When updating reader-facing guide pages, use `repo-docs-zh` when available; keep Chinese reader handles in the prose and preserve exact source identifiers for lookup.
-Read current source, scripts and tests before treating the guide as implementation truth. Choose `none`, `answer-only`, `foreground patch`, or `background sync` according to the actual knowledge gap. Record verification honestly; historical device evidence does not validate a refactored implementation.
+Read current source, scripts and tests before treating the guide as implementation truth. Choose `none`, `answer-only`, `foreground patch`, or `background sync` according to the actual knowledge gap. Patch the smallest owning page before the final answer when a durable gap would mislead. Update the walkthrough for boundary changes and the code map for responsibility changes. Record meaningful guide changes and actual verification in `repo-docs/change-log.md` with `Synced through <sha>`. Historical device evidence does not validate a refactored implementation.

@@ -4,8 +4,8 @@
 
 | 轮次 | 检查范围 | 结果 |
 | --- | --- | --- |
-| Pass 1 | 原实验补丁、启动工具、镜像编辑器和回退控制器 | 找到可复用实现及固定实例／路径耦合。 |
-| Pass 2 | 本仓库CLI、target描述、构建脚本、主机测试 | 核对参数化边界、拒绝路径、产物清单及独立验证。 |
+| Pass 1 | 本仓库 CLI、目标描述、镜像与绑定控制器、原生构建和登记入口 | 核对输入、候选、绑定、事务的交接，以及外部工具和固定目标边界。 |
+| Pass 2 | 下载获取器、主机测试、构建清单、现有文档和站点入口 | 反查错误输入、标签变化、独占写盘、回退及历史／重构验证区别；检查文字是否夸大证据。 |
 
 覆盖本地源码行为；排除原厂镜像内容、其它应用数据和未做的设备验收。可证伪检查：向允许分区外写一个字节，`images.audit`必须拒绝；若未拒绝则“范围内修改”结论不成立。
 
@@ -18,5 +18,10 @@
 | 回退依赖原备份和事务 | [控制器](../../src/mumu_resukisu/controller.py) | Confirmed | 不含数据盘；未知中断状态拒绝猜测覆盖 | walkthrough |
 | 原生源码按固定输入构建 | [构建器](../../scripts/build-native.py) | Confirmed | 外部源码与工具链由用户提供 | code-map |
 | 新入口缺少设备验收 | [目标状态](../../targets/mumu-android15-x86_64/profile.json) | Confirmed | 历史固定用例成功不代替此次重测 | README |
+| 最新发行查询不改变目标版本 | [获取器](../../src/mumu_resukisu/releases.py)、[下载测试](../../tests/test_releases.py)、[固定原生目标](../../native/driver/target-profile.json) | Confirmed | 下载不验证 APK 签名或升级兼容 | release-lifecycle |
+| 登记只产生待审材料 | [登记器](../../scripts/register-release.py)、[登记测试](../../tests/test_release_registration.py) | Confirmed | 源码与 APK 关联仍由维护者审查 | release-lifecycle |
+| 站点使用同一份指南正文 | [站点首页](../../docs-site/index.md)、[默认主题配置](../../docs-site/.vitepress/config.mjs)、[链接转换](../../docs-site/.vitepress/guide-links.mjs) | Confirmed | 构建文档不构建业务；源码定位不复制文件 | README、code-map |
 
 以上源码链接以仓库根目录为基准的相对位置，在文档验证阶段核对；本文件不存储运行时路径或实例身份。
+
+文档格式参考公开 [modelbridge](https://cnb.cool/CyberNova2333/modelbridge) 的已提交 README、Standard 指南和默认主题站点结构；只借鉴阅读组织与呈现方式，不把参考项目的业务边界、验证结果或未提交主题带入本项目。实际验证记录和提交锚点见[同步记录](../change-log.md)。
