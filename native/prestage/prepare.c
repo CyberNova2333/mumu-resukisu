@@ -12,14 +12,18 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
+#include <sys/random.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include "sha256.h"
 #include "pins.h"
 #include "catalog.h"
+#include "stock-pin.h"
 
 struct image { unsigned char *data; size_t size; };
-struct result { const char *stage,*action; int error,pinned,cleanup_verified,removed,absent,seeded,supported,preserved,index; struct stat before,after; char boot[37]; };
+struct daemon_observation { size_t bytes; int elf64; char sha[65]; };
+static struct daemon_observation observed_daemon;
+struct result { const char *stage,*action; int error,pinned,cleanup_verified,removed,absent,seeded,supported,preserved,index,stock_backup,stock_retired,stock_resumed; struct stat before,after; char boot[37]; struct daemon_observation observed; };
 static int write_all(int fd,const void *p,size_t n) {
     const unsigned char *b=p;
     while(n){ssize_t k=write(fd,b,n);if(k<0&&errno==EINTR)continue;if(k<=0)return -1;b+=k;n-=(size_t)k;}return 0;
@@ -124,12 +128,17 @@ static int catalog_match(const struct image *im){
     if(!elf64_image(im))return -1;unsigned char hash[32];sha256(im->data,im->size,hash);
     for(unsigned i=0;i<CATALOG_COUNT;i++)if(catalog[i].uapi==6&&catalog[i].size==im->size&&!memcmp(catalog[i].hash,hash,32))return (int)i;return -1;
 }
+static int stock_image(const struct image *im){return elf64_image(im)&&image_hash(im,STOCK_DAEMON_BYTES,stock_daemon_sha);}
+static void observe_daemon(const struct image *im){
+    unsigned char hash[32];sha256(im->data,im->size,hash);observed_daemon.bytes=im->size;observed_daemon.elf64=elf64_image(im);
+    for(int i=0;i<32;i++)snprintf(observed_daemon.sha+i*2,3,"%02x",hash[i]);
+}
 static int daemon_existing(int dir,int *present,int *index,struct stat *identity){
-    *present=0;*index=-1;struct stat a,b;if(fstatat(dir,"ksud",&a,AT_SYMLINK_NOFOLLOW))return errno==ENOENT?0:-1;*present=1;
+    memset(&observed_daemon,0,sizeof(observed_daemon));*present=0;*index=-1;struct stat a,b;if(fstatat(dir,"ksud",&a,AT_SYMLINK_NOFOLLOW))return errno==ENOENT?0:-1;*present=1;
     if(!exact_file_meta(&a)){errno=EPERM;return -1;}struct image im={0};
-    if(load_at(dir,"ksud",0,64U*1024U*1024U,NULL,0,&im))return -1;int found=catalog_match(&im);free(im.data);
+    if(load_at(dir,"ksud",0,64U*1024U*1024U,NULL,0,&im))return -1;observe_daemon(&im);int found=catalog_match(&im);if(found<0&&stock_image(&im))found=-2;free(im.data);
     if(fstatat(dir,"ksud",&b,AT_SYMLINK_NOFOLLOW)||!same_identity(&a,&b)){errno=ESTALE;return -1;}
-    *identity=a;if(found<0){errno=EKEYREJECTED;return -1;}*index=found;return 0;
+    *identity=a;if(found==-1){errno=EKEYREJECTED;return -1;}*index=found;return 0;
 }
 static int target_marker(int dir,const char *name,int pin,int *present,struct stat *identity){
     *present=0;if(dir<0)return 0;struct stat a,b;if(fstatat(dir,name,&a,AT_SYMLINK_NOFOLLOW))return errno==ENOENT?0:-1;
@@ -158,10 +167,11 @@ static int seed_missing(int adb,const struct image *im,int *published){
     if(ok&&syscall(SYS_renameat2,adb,name,adb,"ksud",1U)){ok=0;err=errno;}
     if(!ok){unlinkat(adb,name,0);errno=err;return -1;}*published=1;return fsync(adb);
 }
+#include "stock-migration.h"
 static int write_report(int dir,const struct result *r){
-    const char *hash=r->index>=0&&r->index<(int)CATALOG_COUNT?catalog[r->index].hex:"";char b[2048];
-    int n=snprintf(b,sizeof(b),"{\"schemaVersion\":1,\"bootId\":\"%s\",\"stage\":\"%s\",\"errno\":%d,\"complete\":%s,\"dataMountVerified\":true,\"inputsPinned\":%s,\"cleanupVerified\":%s,\"daemonAction\":\"%s\",\"daemonSupported\":%s,\"daemonCatalogIndex\":%d,\"daemonUapiVersion\":%d,\"daemonSha256\":\"%s\",\"seededFiles\":%d,\"daemonPreservedUnchanged\":%s,\"daemonInodeBefore\":%" PRIuMAX ",\"daemonInodeAfter\":%" PRIuMAX ",\"daemonMtimeBefore\":%" PRIdMAX ",\"daemonMtimeAfter\":%" PRIdMAX ",\"removedObserverFiles\":%d,\"alreadyAbsentObserverFiles\":%d,\"unrelatedScriptsEnumerated\":false,\"unrelatedFilesDeleted\":false,\"daemonExecutedByHelper\":false,\"normalRcVerifiedByThisHelper\":false}\n",
-        r->boot,r->stage,r->error,!strcmp(r->stage,"completed")?"true":"false",r->pinned?"true":"false",r->cleanup_verified?"true":"false",r->action,r->supported?"true":"false",r->index,r->supported?6:0,hash,r->seeded,r->preserved?"true":"false",(uintmax_t)r->before.st_ino,(uintmax_t)r->after.st_ino,(intmax_t)r->before.st_mtim.tv_sec,(intmax_t)r->after.st_mtim.tv_sec,r->removed,r->absent);
+    const char *hash=r->index>=0&&r->index<(int)CATALOG_COUNT?catalog[r->index].hex:"";char b[3072];
+    int n=snprintf(b,sizeof(b),"{\"schemaVersion\":1,\"bootId\":\"%s\",\"stage\":\"%s\",\"errno\":%d,\"complete\":%s,\"dataMountVerified\":true,\"inputsPinned\":%s,\"cleanupVerified\":%s,\"daemonAction\":\"%s\",\"daemonSupported\":%s,\"daemonCatalogIndex\":%d,\"daemonUapiVersion\":%d,\"daemonSha256\":\"%s\",\"seededFiles\":%d,\"daemonPreservedUnchanged\":%s,\"daemonInodeBefore\":%" PRIuMAX ",\"daemonInodeAfter\":%" PRIuMAX ",\"daemonMtimeBefore\":%" PRIdMAX ",\"daemonMtimeAfter\":%" PRIdMAX ",\"removedObserverFiles\":%d,\"alreadyAbsentObserverFiles\":%d,\"observedDaemonBytes\":%zu,\"observedDaemonSha256\":\"%s\",\"observedDaemonElf64X64\":%s,\"stockBackupVerified\":%s,\"stockRetiredThisRun\":%s,\"stockMigrationResumed\":%s,\"unrelatedScriptsEnumerated\":false,\"unrelatedFilesDeleted\":false,\"daemonExecutedByHelper\":false,\"normalRcVerifiedByThisHelper\":false}\n",
+        r->boot,r->stage,r->error,!strcmp(r->stage,"completed")?"true":"false",r->pinned?"true":"false",r->cleanup_verified?"true":"false",r->action,r->supported?"true":"false",r->index,r->supported?6:0,hash,r->seeded,r->preserved?"true":"false",(uintmax_t)r->before.st_ino,(uintmax_t)r->after.st_ino,(intmax_t)r->before.st_mtim.tv_sec,(intmax_t)r->after.st_mtim.tv_sec,r->removed,r->absent,r->observed.bytes,r->observed.sha,r->observed.elf64?"true":"false",r->stock_backup?"true":"false",r->stock_retired?"true":"false",r->stock_resumed?"true":"false");
     if(n<0||(size_t)n>=sizeof(b)){errno=EOVERFLOW;return -1;}return atomic_write(dir,"prestage.json",b,(size_t)n,0644);
 }
 int main(int argc,char **argv){
@@ -173,17 +183,19 @@ int main(int argc,char **argv){
     top=open("/",O_RDONLY|O_DIRECTORY|O_CLOEXEC);if(top<0)goto out;r.stage="loader_report_validation";
     if(load_at(top,"userspace-driver-boot.json",0,2048,NULL,0,&loader))goto out;if(!loader_report_ok(&loader,r.boot)){errno=EINVAL;goto out;}if(atomic_write(report,"userspace-driver-boot.json",loader.data,loader.size,0644))goto out;
     r.stage="destination_validation";adb=open_dir_at(data,"adb",1,1,1,0700);if(adb<0)goto out;struct stat adb_meta;if(fstat(adb,&adb_meta)||adb_meta.st_gid!=0){errno=EPERM;goto out;}
-    r.stage="existing_daemon_validation";if(daemon_existing(adb,&present,&r.index,&r.before)){r.action="rejected_unknown";goto out;}
-    if(present){r.action="preserved_supported";r.supported=1;r.pinned=1;}
+    r.stage="existing_daemon_validation";int inspected=daemon_existing(adb,&present,&r.index,&r.before);r.observed=observed_daemon;if(inspected){r.action="rejected_unknown";goto out;}
+    int initial_index=r.index;
+    if(present&&initial_index>=0){r.action="preserved_supported";r.supported=1;r.pinned=1;}
     else{
         r.stage="seed_source_validation";system=open_dir_at(android,"system",0,1,0,0);if(system<0)goto out;xbin=open_dir_at(system,"xbin",0,1,0,0);if(xbin<0)goto out;
         if(load_at(xbin,"dusk",DAEMON_BYTES,DAEMON_BYTES,daemon_sha,1,&seed))goto out;if(!elf64_image(&seed)){errno=ENOEXEC;goto out;}r.index=catalog_match(&seed);if(r.index<0){errno=EKEYREJECTED;goto out;}r.pinned=1;
     }
     r.stage="observer_validation";const char *paths[3]={"post-mount.d","service.d","boot-completed.d"};for(int i=0;i<3;i++){if(hook_directory(adb,paths[i],&dirs[i]))goto out;removals[i+1].dir=dirs[i];}removals[0].dir=adb;
     if(validate_removals(removals,0))goto out;r.cleanup_verified=1;for(int i=0;i<4;i++)if(!removals[i].present)r.absent++;
-    if(!present){r.stage="seed_missing_daemon";int seed_rc=seed_missing(adb,&seed,&r.seeded);if(seed_rc)goto out;r.action="seeded_missing";}
+    r.stage="stock_daemon_migration";int migrated=migrate_stock(adb,&seed,present,initial_index,&r);if(migrated<0)goto out;
+    if(!present&&!migrated){r.stage="seed_missing_daemon";int seed_rc=seed_missing(adb,&seed,&r.seeded);if(seed_rc)goto out;r.action="seeded_missing";}
     r.stage="daemon_revalidation";int now_present,now_index;if(daemon_existing(adb,&now_present,&now_index,&r.after)||!now_present||now_index!=r.index){errno=EKEYREJECTED;goto out;}r.supported=1;
-    if(present){if(!same_identity(&r.before,&r.after)){errno=ESTALE;goto out;}r.preserved=1;}
+    if(present&&initial_index>=0){if(!same_identity(&r.before,&r.after)){errno=ESTALE;goto out;}r.preserved=1;}
     r.stage="observer_revalidation";if(validate_removals(removals,1))goto out;
     r.stage="observer_cleanup";for(int i=0;i<4;i++){int did;int remove_rc=remove_own(&removals[i],&did);r.removed+=did;if(remove_rc)goto out;}
     r.stage="completed";rc=0;

@@ -7,7 +7,7 @@
 | `src/mumu_resukisu/` | Python命令、VDI、启动文件系统、实例事务 | `cli.main`、`images.audit`、`BootFs`、`Controller` | 从本地输入到安装回退。 |
 | `native/driver/` | 固定内核适配 | `resukisu.patch`、`ack-task-layout.patch`、目标描述 | 决定ABI与源码适配边界。 |
 | `native/loader/` | PID1加载器 | `loader.c` | 在早期启动校验并加载配套模块。 |
-| `native/prestage/` | 数据预置 | `prepare.c`、`catalog.h` | 在Android接手前检查或补齐daemon。 |
+| `native/prestage/` | 数据预置 | `prepare.c`、`catalog.h`、`stock-migration.h` | 在Android接手前保留、补齐或迁移已知daemon。 |
 | `native/probes/` | 受限验证程序 | 授权、过滤器、32位调用、只读检查、脚本用例 | 构建阶段模型与另行运行验收。 |
 | `native/common/` | 小型通用辅助实现 | `sha256.h` | 固定内容摘要检查。 |
 | `native/tools/frida/` | 受限实际工具用例 | supervisor、target、注入脚本 | 独立构建；设备编排尚待迁移。 |
@@ -52,12 +52,14 @@
 
 ## `native/prestage/`
 
-启动预置负责daemon目录检查、支持清单比对、缺失时原子补齐。修改支持版本同时影响清单、固定内容摘要和编译输入，不能只编辑设备中的JSON。
+启动预置负责daemon目录检查、支持清单比对、缺失时原子补齐，以及原厂版本的备份迁移。修改支持版本同时影响清单、固定内容摘要和编译输入，不能只编辑设备中的JSON。迁移状态与恢复边界见[机制说明](modules/image-boundaries.md)。
 
 | 重要代码 | 功能 | 关键符号 | 调用方 / 使用方 | 验证入口 |
 | --- | --- | --- | --- | --- |
 | `prepare.c` | 启动包运行的预置程序；未知 daemon 保留并失败。 | — | 启动包和用户态构建器 | `unit.c` |
 | `catalog.h`、`pins.h`、`supported-daemons.json` | 编译与登记审查共同维护的固定支持输入。 | — | 启动包和用户态构建器 | `build-userspace.py` / `verify_catalog` |
+| `stock-migration.h` | 精确原厂输入的备份、发布和失败后重试。 | `stock_backup_durable`、`stock_retire`、`migrate_stock` | `prepare.c` 在观察脚本检查之后调用 | `stock-unit.c` |
+| `stock-pin.h`、`stock-daemon.json` | 仅允许迁移的原厂文件身份，不加入可运行版本清单。 | — | 启动包和用户态构建器 | `build-userspace.py` / `verify_stock` |
 
 ## `native/probes/`
 

@@ -53,10 +53,10 @@ python3 scripts/prepare-kernel.py \
 
 ## 3. 构建用户态辅助工具
 
-在 `bindings/userspace.json` 写入三项配置：`schemaVersion` 为1，`expectedManagerUid` 为指定实例中实际核对的管理器UID，`daemonFile` 为配套daemon的本地路径。UID不可照抄其他实例。daemon目前只接受固定已核验版本。
+在 `bindings/userspace.json` 写入三项配置：`schemaVersion` 为1，`expectedManagerUid` 为指定实例中实际核对的管理器UID，`daemonFile` 为配套daemon的本地路径。UID不可照抄其他实例。daemon目前只接受固定已核验版本。另从固定原始 system 镜像提取 `/system/xbin/dusk`，保存在本地输入目录，并通过 `--stock-daemon` 提供给迁移主机模型；它与新配套daemon是两个不同输入，均不会被执行。
 
 ```sh
-python3 scripts/build-userspace.py --config bindings/userspace.json --output build/userspace
+python3 scripts/build-userspace.py --config bindings/userspace.json --stock-daemon inputs/stock-dusk --output build/userspace
 ```
 
 构建会运行主机模型，失败时保留输出并以非零状态退出。Windows 调用可明确传入 WSL 发行版和用户；用 `--help` 查看本机模型 Python 的选择方式。构建清单中 `deviceValidated:false` 是正常且必要的边界。

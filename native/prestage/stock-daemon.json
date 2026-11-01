@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Recognized predecessor for backed-up migration only; never an executable supported daemon",
+  "sourceSystemSha256": "82a7f8e6fce62c1744221a90b63a69eafc80537105f754f9cf5ef142226e70d1",
+  "sourcePath": "/system/xbin/dusk",
+  "bytes": 3753880,
+  "sha256": "c87a4697bb4e1bf52de82271ce73147276e13f9f0607e12970cb5ec095623a78",
+  "elfClass": 64,
+  "elfMachine": 62,
+  "elfType": 3
+}

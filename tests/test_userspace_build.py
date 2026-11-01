@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import importlib.util
 import json
+import shutil
 from pathlib import Path
 import tempfile
 import unittest
@@ -43,6 +44,22 @@ class UserspaceBuildTests(unittest.TestCase):
             file.write_text(json.dumps({'schemaVersion':1,'expectedManagerUid':12345,'daemonFile':'daemon'}))
             with self.assertRaisesRegex(ValueError, 'Unsupported daemon'):
                 build.load_config(file)
+
+    def test_unknown_stock_source_refused_without_execution(self):
+        with tempfile.TemporaryDirectory() as folder, patch('subprocess.run', side_effect=AssertionError('executed stock input')):
+            source=Path(folder)/'stock';source.write_bytes(b'unknown daemon')
+            with self.assertRaisesRegex(ValueError, 'Unrecognized stock'):
+                build.verify_stock(source)
+
+    def test_stock_compiled_pin_must_match_reviewed_record(self):
+        with tempfile.TemporaryDirectory() as folder:
+            native=Path(folder);(native/'prestage').mkdir()
+            for name in ('stock-daemon.json','stock-pin.h'):
+                shutil.copyfile(build.NATIVE/'prestage'/name,native/'prestage'/name)
+            header=native/'prestage/stock-pin.h'
+            header.write_text(header.read_text().replace('0xc8,0x7a','0xc9,0x7a'))
+            with patch.object(build,'NATIVE',native),self.assertRaisesRegex(ValueError,'Compiled stock hash'):
+                build.verify_stock(native/'absent')
 
     def test_output_must_be_new_and_within_build(self):
         with tempfile.TemporaryDirectory() as folder, patch.object(build, 'ROOT', Path(folder)):
