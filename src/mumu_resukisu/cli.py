@@ -1,9 +1,10 @@
-"""Explicit offline and instance-bound commands; importing has no side effects."""
+"""Explicit release, offline and instance-bound commands; no import side effects."""
 import argparse
 import json
 import re
 from pathlib import Path
 import subprocess
+from urllib.error import HTTPError, URLError
 from . import __version__
 from .images import Vdi, assemble, audit, hashfile, partitions, safe_path, write_json
 
@@ -55,6 +56,9 @@ def main(argv=None):
     ap=argparse.ArgumentParser(description='MuMu Android15 target-bound ReSukiSU tools')
     ap.add_argument('--version',action='version',version=__version__)
     subs=ap.add_subparsers(dest='command',required=True)
+    from . import releases
+    p=subs.add_parser('fetch-release',help='Query or download the latest official release; never install')
+    releases.add_arguments(p)
     p=subs.add_parser('profile',help='Inspect supported fingerprints without touching a device')
     p.add_argument('--profile',type=Path,required=True)
     p=subs.add_parser('extract',help='Extract partitions from read-only caller-supplied snapshots')
@@ -74,7 +78,13 @@ def main(argv=None):
         p.add_argument('--candidate',type=Path,required=name in ('install','inspect'))
         if name=='restore':p.add_argument('--transaction',required=True)
     a=ap.parse_args(argv)
-    if a.command=='profile':result=load_profile(a.profile)
+    if a.command=='fetch-release':
+        try:result=releases.run(a)
+        except HTTPError as exc:
+            ap.exit(1,f'Upstream HTTP {exc.code}; check release availability or public API rate limits.\n')
+        except (URLError,TimeoutError,OSError,ValueError) as exc:
+            ap.exit(1,f'Release fetch failed: {exc}\n')
+    elif a.command=='profile':result=load_profile(a.profile)
     elif a.command=='extract':
         p=load_profile(a.profile)
         if hashfile(a.base)!=p['baseSha256']:raise ValueError('Wrong base fingerprint')
