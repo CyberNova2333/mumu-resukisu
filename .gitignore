@@ -20,3 +20,6 @@ __pycache__/
 *.pem
 *.key
 .env*
+/docs-site/node_modules/
+/docs-site/.vitepress/cache/
+/docs-site/.vitepress/dist/
