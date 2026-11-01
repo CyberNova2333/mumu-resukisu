@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "mumu-android15-x86_64",
+  "androidVersion": "15.0",
+  "virtualBytes": 2465270784,
+  "baseSha256": "2cba3abaafb19f4b2c8b018cea858aed8ddd3b8c92a6b3aab9f9f72787937196",
+  "nativeProfile": "../../native/driver/target-profile.json",
+  "partitions": [
+    {"name": "boot", "offset": 17563648, "bytes": 14660608, "sourceSha256": "c00d2193e7d733a7d7df7cf3ba6d261f111901b1aed184e3934c44fc38a8753c"},
+    {"name": "system", "offset": 40482816, "bytes": 1754411008, "sourceSha256": "82a7f8e6fce62c1744221a90b63a69eafc80537105f754f9cf5ef142226e70d1"},
+    {"name": "vendor", "offset": 1794894336, "bytes": 133505024, "sourceSha256": "68b76874bf917edd33e7e8c7b8e1550f1df5da41ee8c7f830b120da43a04cb69"}
+  ],
+  "scope": "One fingerprinted Android15 x86_64 engine; Android12 is unsupported",
+  "historicalDeviceValidation": true,
+  "refactoredDeviceValidation": false
+}

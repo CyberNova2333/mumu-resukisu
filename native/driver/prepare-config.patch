@@ -1,0 +1,51 @@
+--- a/.config
++++ b/.config
+@@ -2,7 +2,7 @@
+ # Automatically generated file; DO NOT EDIT.
+ # Linux/x86_64 6.1.90 Kernel Configuration
+ #
+-CONFIG_CC_VERSION_TEXT="Android (12701618, +pgo, +bolt, +lto, +mlgo, based on r536225) clang version 19.0.1 (https://android.googlesource.com/toolchain/llvm-project b3a530ec6537146650e42be89f1089e9a3588460)"
++CONFIG_CC_VERSION_TEXT="Android (12833971, +pgo, +bolt, +lto, +mlgo, based on r536225) clang version 19.0.1 (https://android.googlesource.com/toolchain/llvm-project b3a530ec6537146650e42be89f1089e9a3588460)"
+ CONFIG_GCC_VERSION=0
+ CONFIG_CC_IS_CLANG=y
+ CONFIG_CLANG_VERSION=190001
+@@ -11,12 +11,14 @@
+ CONFIG_LD_VERSION=0
+ CONFIG_LD_IS_LLD=y
+ CONFIG_LLD_VERSION=190001
++CONFIG_CC_CAN_LINK=y
++CONFIG_CC_CAN_LINK_STATIC=y
+ CONFIG_CC_HAS_ASM_GOTO_OUTPUT=y
+ CONFIG_CC_HAS_ASM_GOTO_TIED_OUTPUT=y
+ CONFIG_TOOLS_SUPPORT_RELR=y
+ CONFIG_CC_HAS_ASM_INLINE=y
+ CONFIG_CC_HAS_NO_PROFILE_FN_ATTR=y
+-CONFIG_PAHOLE_VERSION=0
++CONFIG_PAHOLE_VERSION=125
+ CONFIG_IRQ_WORK=y
+ CONFIG_BUILDTIME_TABLE_SORT=y
+ CONFIG_THREAD_INFO_IN_TASK=y
+@@ -6607,7 +6609,6 @@
+ CONFIG_HYPERV_TIMER=y
+ CONFIG_HYPERV_UTILS=m
+ CONFIG_HYPERV_BALLOON=m
+-# CONFIG_DXGKRNL is not set
+ # end of Microsoft Hyper-V guest support
+ 
+ # CONFIG_GREYBUS is not set
+@@ -7592,15 +7593,6 @@
+ # CONFIG_MOST is not set
+ # CONFIG_PECI is not set
+ # CONFIG_HTE is not set
+-
+-#
+-# KernelSU
+-#
+-CONFIG_KSU=y
+-# CONFIG_KSU_DEBUG is not set
+-# CONFIG_KSU_DISABLE_MANAGER is not set
+-# CONFIG_KSU_DISABLE_POLICY is not set
+-# end of KernelSU
+ # end of Device Drivers
+ 
+ #

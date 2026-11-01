@@ -1,0 +1,858 @@
+diff --git a/kernel/compat/kernel_compat.h b/kernel/compat/kernel_compat.h
+index 3aafff58..793242a6 100644
+--- a/kernel/compat/kernel_compat.h
++++ b/kernel/compat/kernel_compat.h
+@@ -1,6 +1,18 @@
+ #ifndef __KSU_H_KERNEL_COMPAT
+ #define __KSU_H_KERNEL_COMPAT
+ 
++/* Target-only backport declaration for the audited Android 15 x86 kernel.
++ * Kernel SHA256 48e7b624b3652ccbc215e25b24432bab052081b55aa806e77c28fe4c8bd9a685.
++ * The native initializer and CPU feature data independently establish bit 371.
++ * This declares the existing bit; the runtime boot_cpu_has guard stays intact.
++ */
++#if defined(CONFIG_X86_64)
++#include <asm/cpufeatures.h>
++#ifndef X86_FEATURE_INDIRECT_SAFE
++#define X86_FEATURE_INDIRECT_SAFE (11 * 32 + 19)
++#endif
++#endif
++
+ #include <linux/namei.h>
+ #include <linux/cred.h>
+ #include <linux/fs.h>
+@@ -12,7 +24,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/syscalls.h>
+ #ifdef CONFIG_COMPAT
+-#include <asm/compat.h>
++#include <linux/compat.h>
+ #endif
+ #include "arch.h"
+ 
+diff --git a/kernel/core/init.c b/kernel/core/init.c
+index 65f40a45..8224c66a 100644
+--- a/kernel/core/init.c
++++ b/kernel/core/init.c
+@@ -168,7 +168,11 @@ char ksu_block_modules[256];
+ module_param_string(block_modules, ksu_block_modules, sizeof(ksu_block_modules), 0);
+ MODULE_PARM_DESC(block_modules, "Comma-separated preset module names to acknowledge without loading");
+ 
++#ifdef CONFIG_KSU_TARGET_MUMU_A15_ABI
++int __init resukisu_mumu_init(void)
++#else
+ int __init kernelsu_init(void)
++#endif
+ {
+     // clang-format off
+     
+@@ -192,6 +196,11 @@ int __init kernelsu_init(void)
+ #else
+     ksu_late_loaded = false;
+ #endif
++#ifdef CONFIG_KSU_TARGET_MUMU_A15_ABI
++    /* This target was audited only for its early PID1 boot loader. */
++    if (current->pid != 1)
++        return -EPERM;
++#endif
+ 
+     // If we are in tracepoint hook, and won't enable PATCH_SYSCALL_DISPATCHER, check x86-64 hooks
+ #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
+@@ -338,6 +347,8 @@ void __exit kernelsu_exit(void)
+ 
+ #if NEED_OWN_STACKPROTECTOR
+ module_init(kernelsu_init_early);
++#elif defined(CONFIG_KSU_TARGET_MUMU_A15_ABI)
++module_init(resukisu_mumu_init);
+ #else
+ module_init(kernelsu_init);
+ #endif
+diff --git a/kernel/feature/sucompat.c b/kernel/feature/sucompat.c
+index dc8cab81..082f23ba 100644
+--- a/kernel/feature/sucompat.c
++++ b/kernel/feature/sucompat.c
+@@ -317,6 +317,174 @@ long ksu_handle_execveat_sucompat_internal(const char __user **filename_user, in
+                                                       (const char __user *const __user *)PT_REGS_USER_PTR(regs, 3),
+                                                       PT_REGS_SYSCALL_PARM4(regs), true, orig_nr, regs);
+ }
++/* IA32 syscall arguments are separate from the native kernel C-call ABI. */
++#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
++#include "hook/x86_64/ia32_abi.h"
++
++static unsigned long *ksu_ia32_arg_slot(struct pt_regs *regs, unsigned int index)
++{
++    switch (index) {
++    case 0: return &regs->bx;
++    case 1: return &regs->cx;
++    case 2: return &regs->dx;
++    case 3: return &regs->si;
++    case 4: return &regs->di;
++    case 5: return &regs->bp;
++    default: return NULL;
++    }
++}
++
++static void __user *ksu_ia32_stack_string(struct pt_regs *regs, const char *s, size_t len)
++{
++    u32 sp = (u32)regs->sp;
++    void __user *p;
++
++    if (regs->sp != sp || !len || sp < len)
++        return NULL;
++    p = compat_ptr(sp - len);
++    return copy_to_user(p, s, len) ? NULL : p;
++}
++
++static bool ksu_ia32_is_su(const struct pt_regs *regs, unsigned int index)
++{
++    char path[sizeof(su_path)];
++    const char __user *filename = compat_ptr(ksu_ia32_syscall_arg(regs, index));
++    long len = strncpy_from_user(path, filename, sizeof(path));
++
++    return len == sizeof(su_path) - 1 && !memcmp(path, su_path, sizeof(su_path));
++}
++
++static long ksu_ia32_su_query(int orig_nr, struct pt_regs *regs, unsigned int path_index)
++{
++    unsigned long *slot = ksu_ia32_arg_slot(regs, path_index);
++    unsigned long saved;
++    void __user *redirect;
++    const struct cred *old_cred;
++    long ret;
++
++    if (!ksu_ia32_is_su(regs, path_index))
++        return ksu_call_syscall(orig_nr, regs);
++    redirect = ksu_ia32_stack_string(regs, ksud_path, sizeof(ksud_path));
++    if (!redirect)
++        return -EFAULT;
++    old_cred = override_creds(ksu_cred);
++    if (!is_ksud_exists()) {
++        revert_creds(old_cred);
++        return ksu_call_syscall(orig_nr, regs);
++    }
++    saved = *slot;
++    *slot = (u32)(unsigned long)redirect;
++    ret = ksu_call_syscall(orig_nr, regs);
++    *slot = saved;
++    revert_creds(old_cred);
++    return ret;
++}
++
++static long ksu_ia32_su_exec(int orig_nr, struct pt_regs *regs, bool execveat)
++{
++    const unsigned int path_index = execveat ? 1 : 0;
++    const char __user *filename;
++    const char __user *const __user *argv;
++    u32 argv_addr, envp_addr;
++    unsigned long saved[5];
++    void __user *empty;
++    struct file *file;
++    const struct cred *old_cred;
++    const struct cred *before_root;
++    bool already_root;
++    struct ksu_sulog_pending_event *pending;
++    long ret;
++    int tmp_fd, i;
++
++    /* Keep the same supported execveat form as the native sucompat path. */
++    if (execveat && ((int)(u32)regs->bx != AT_FDCWD || (u32)regs->di))
++        return ksu_call_syscall(orig_nr, regs);
++    if (!ksu_ia32_is_su(regs, path_index))
++        return ksu_call_syscall(orig_nr, regs);
++    if (test_thread_flag(TIF_KSU_DISABLE_ESCAPE_WITH_ROOT))
++        return -EPERM;
++
++    empty = ksu_ia32_stack_string(regs, "", 1);
++    if (!empty)
++        return -EFAULT;
++    filename = compat_ptr(ksu_ia32_syscall_arg(regs, path_index));
++    argv_addr = ksu_ia32_syscall_arg(regs, path_index + 1);
++    envp_addr = ksu_ia32_syscall_arg(regs, path_index + 2);
++    argv = compat_ptr(argv_addr);
++    tmp_fd = get_unused_fd_flags(O_CLOEXEC);
++    if (tmp_fd < 0)
++        return tmp_fd;
++    old_cred = override_creds(ksu_cred);
++    file = filp_open(KSUD_PATH, O_PATH, 0);
++    revert_creds(old_cred);
++    if (IS_ERR(file)) {
++        put_unused_fd(tmp_fd);
++        return PTR_ERR(file);
++    }
++    fd_install(tmp_fd, file);
++    pending = ksu_sulog_capture_sucompat_tracepoint(filename, argv, GFP_KERNEL);
++    for (i = 0; i < ARRAY_SIZE(saved); ++i)
++        saved[i] = *ksu_ia32_arg_slot(regs, i);
++
++    /* IA32 execveat(fd, empty, compat argv, compat envp, AT_EMPTY_PATH). */
++    regs->bx = (u32)tmp_fd;
++    regs->cx = (u32)(unsigned long)empty;
++    regs->dx = argv_addr;
++    regs->si = envp_addr;
++    regs->di = AT_EMPTY_PATH;
++    before_root = get_current_cred();
++    already_root = ksu_get_uid_t(current_euid()) == 0;
++    ret = escape_with_root_profile();
++    /* Some upstream abort paths return zero without committing new creds. */
++    if (!ret && !already_root && current_cred() == before_root)
++        ret = -EPERM;
++    put_cred(before_root);
++    ksu_sulog_emit_pending(pending, ret, GFP_KERNEL);
++    if (ret)
++        goto failed;
++
++    /* Direct original-table call: no syscall entry/tracepoint recursion. */
++    ret = ksu_call_syscall(__NR_ia32_execveat, regs);
++    if (ret < 0)
++        goto failed;
++    /* The ELF64 ksud loader may have replaced registers and compat state. */
++    if (ksu_install_su_fd() < 0)
++        pr_warn("IA32 su session FD installation failed\n");
++    return ret;
++
++failed:
++    ksu_close_fd(tmp_fd);
++    for (i = 0; i < ARRAY_SIZE(saved); ++i)
++        *ksu_ia32_arg_slot(regs, i) = saved[i];
++    return ret;
++}
++
++long __nocfi ksu_hook_ia32_sucompat(int orig_nr, const struct pt_regs *user_regs)
++{
++    struct pt_regs *regs = (struct pt_regs *)user_regs;
++
++    if (!in_ia32_syscall() || !static_branch_unlikely(&ksu_su_compat_enabled) ||
++        !ksu_is_allow_uid_for_current(ksu_get_uid_t(current_uid())))
++        return ksu_call_syscall(orig_nr, regs);
++    switch (orig_nr) {
++    case __NR_ia32_execve: return ksu_ia32_su_exec(orig_nr, regs, false);
++    case __NR_ia32_execveat: return ksu_ia32_su_exec(orig_nr, regs, true);
++    case __NR_ia32_access:
++    case __NR_ia32_stat:
++    case __NR_ia32_lstat:
++    case __NR_ia32_stat64:
++    case __NR_ia32_lstat64:
++        return ksu_ia32_su_query(orig_nr, regs, 0);
++    case __NR_ia32_fstatat64:
++    case __NR_ia32_faccessat:
++    case __NR_ia32_faccessat2:
++    case __NR_ia32_statx:
++        return ksu_ia32_su_query(orig_nr, regs, 1);
++    default: return ksu_call_syscall(orig_nr, regs);
++    }
++}
++#endif
++
+ #endif
+ 
+ #if defined(CONFIG_KSU_SUSFS) || defined(CONFIG_KSU_MANUAL_HOOK)
+diff --git a/kernel/feature/sucompat.h b/kernel/feature/sucompat.h
+index 93573422..ff930745 100644
+--- a/kernel/feature/sucompat.h
++++ b/kernel/feature/sucompat.h
+@@ -88,3 +88,7 @@ static inline void ksu_clear_current_proc_unprivillege(void)
+ #endif
+ 
+ #endif
++
++#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
++long ksu_hook_ia32_sucompat(int orig_nr, const struct pt_regs *regs);
++#endif
+diff --git a/kernel/hook/setuid_hook.c b/kernel/hook/setuid_hook.c
+index 8277a4bf..ffd520fb 100644
+--- a/kernel/hook/setuid_hook.c
++++ b/kernel/hook/setuid_hook.c
+@@ -32,6 +32,9 @@
+ #include <linux/workqueue.h>
+ #endif
+ #include "compat/syscall_no.h"
++#if defined(__x86_64__) && defined(CONFIG_IA32_EMULATION)
++#include "hook/x86_64/ia32_abi.h"
++#endif
+ 
+ static inline void ksu_set_file_immutable(const char *path_name, bool immutable)
+ {
+@@ -108,7 +111,12 @@ static int handle_zygote_next_setresuid(uid_t new_uid)
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+         if (current->seccomp.mode == SECCOMP_MODE_FILTER && current->seccomp.filter) {
+             spin_lock_irq(&current->sighand->siglock);
+-            ksu_seccomp_allow_cache(current->seccomp.filter, ksu_get_syscall_no(reboot));
++            #if defined(__x86_64__) && defined(CONFIG_IA32_EMULATION)
++            if (in_ia32_syscall())
++                ksu_seccomp_allow_ia32_cache(current->seccomp.filter, __NR_ia32_reboot);
++            else
++#endif
++                ksu_seccomp_allow_cache(current->seccomp.filter, ksu_get_syscall_no(reboot));
+             spin_unlock_irq(&current->sighand->siglock);
+         }
+ #else
+@@ -155,7 +163,12 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid)
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+         if (current->seccomp.mode == SECCOMP_MODE_FILTER && current->seccomp.filter) {
+             spin_lock_irq(&current->sighand->siglock);
+-            ksu_seccomp_allow_cache(current->seccomp.filter, ksu_get_syscall_no(reboot));
++            #if defined(__x86_64__) && defined(CONFIG_IA32_EMULATION)
++            if (in_ia32_syscall())
++                ksu_seccomp_allow_ia32_cache(current->seccomp.filter, __NR_ia32_reboot);
++            else
++#endif
++                ksu_seccomp_allow_cache(current->seccomp.filter, ksu_get_syscall_no(reboot));
+             spin_unlock_irq(&current->sighand->siglock);
+         }
+ #else
+diff --git a/kernel/hook/syscall_hook_manager.c b/kernel/hook/syscall_hook_manager.c
+index 5dd1f2be..4f6d0145 100644
+--- a/kernel/hook/syscall_hook_manager.c
++++ b/kernel/hook/syscall_hook_manager.c
+@@ -14,6 +14,9 @@
+ #include <linux/compat.h>
+ 
+ #include "compat/syscall_no.h"
++#if defined(__x86_64__) && defined(CONFIG_IA32_EMULATION)
++#include "hook/x86_64/ia32_abi.h"
++#endif
+ 
+ #include "arch.h"
+ #include "klog.h" // IWYU pragma: keep
+@@ -104,8 +107,13 @@ static void ksu_sys_enter_handler(void *data, struct pt_regs *regs, long id)
+ // clang-format off
+ #ifdef CONFIG_COMPAT
+     #if defined(__x86_64__)
+-        if (unlikely(in_compat_syscall()))
+-            return;
++        if (unlikely(in_compat_syscall())) {
++            #ifdef CONFIG_IA32_EMULATION
++                goto x86_ia32;
++            #else
++                return;
++            #endif
++        }
+     #elif defined(__riscv)
+         if (unlikely(is_compat_task()))
+             return;
+@@ -139,6 +147,12 @@ static void ksu_sys_enter_handler(void *data, struct pt_regs *regs, long id)
+     }
+ 
+     return;
++#if defined(__x86_64__) && defined(CONFIG_IA32_EMULATION)
++x86_ia32:
++    if (in_ia32_syscall() && ksu_has_compat_syscall_hook(id))
++        ksu_ia32_prepare_dispatch(task_pt_regs(current), id, ksu_compat_dispatcher_nr);
++    return;
++#endif
+ #if defined(__aarch64__) && defined(CONFIG_COMPAT)
+ aarch64_compat:
+     if (ksu_compat_dispatcher_nr < 0)
+@@ -171,6 +185,20 @@ void __init ksu_syscall_hook_manager_init(void)
+     ksu_register_syscall_hook(__NR_execveat, ksu_hook_execveat);
+     ksu_register_syscall_hook(__NR_newfstatat, ksu_hook_newfstatat);
+     ksu_register_syscall_hook(__NR_faccessat, ksu_hook_faccessat);
++#if defined(__x86_64__) && defined(CONFIG_IA32_EMULATION)
++    ksu_register_compat_syscall_hook(__NR_ia32_setresuid32, ksu_hook_setresuid);
++    ksu_register_compat_syscall_hook(__NR_ia32_execve, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_execveat, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_access, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_stat, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_lstat, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_stat64, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_lstat64, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_fstatat64, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_faccessat, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_faccessat2, ksu_hook_ia32_sucompat);
++    ksu_register_compat_syscall_hook(__NR_ia32_statx, ksu_hook_ia32_sucompat);
++#endif
+ 
+ #if defined(CONFIG_COMPAT) && defined(__aarch64__)
+     ksu_register_compat_syscall_hook(ksu_get_compat_syscall_no(setresuid32), ksu_hook_setresuid);
+@@ -215,6 +243,20 @@ void __exit ksu_syscall_hook_manager_exit(void)
+     ksu_unregister_syscall_hook(__NR_execveat);
+     ksu_unregister_syscall_hook(__NR_newfstatat);
+     ksu_unregister_syscall_hook(__NR_faccessat);
++#if defined(__x86_64__) && defined(CONFIG_IA32_EMULATION)
++    ksu_unregister_compat_syscall_hook(__NR_ia32_setresuid32);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_execve);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_execveat);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_access);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_stat);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_lstat);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_stat64);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_lstat64);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_fstatat64);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_faccessat);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_faccessat2);
++    ksu_unregister_compat_syscall_hook(__NR_ia32_statx);
++#endif
+ 
+ #if defined(CONFIG_COMPAT) && defined(__aarch64__)
+     ksu_unregister_compat_syscall_hook(ksu_get_compat_syscall_no(setresuid32));
+diff --git a/kernel/hook/x86_64/syscall_hook.c b/kernel/hook/x86_64/syscall_hook.c
+index 21e78580..57fd2751 100644
+--- a/kernel/hook/x86_64/syscall_hook.c
++++ b/kernel/hook/x86_64/syscall_hook.c
+@@ -1,10 +1,14 @@
+ #ifdef __x86_64__
+ 
+ #include "../syscall_hook.h"
++#include "ia32_abi.h"
+ 
+ #include <linux/kallsyms.h>
+ #include <linux/mutex.h>
+ #include <linux/nospec.h>
++#ifdef CONFIG_COMPAT
++#include <linux/compat.h>
++#endif
+ #include <asm/cacheflush.h>
+ #include "infra/symbol_resolver.h"
+ #include "../patch_memory.h"
+@@ -14,22 +18,33 @@
+ sys_call_ptr_t *ksu_syscall_table = NULL;
+ int ksu_dispatcher_nr = -1;
+ 
++#ifndef __NR_syscalls
++#define __NR_syscalls (__NR_syscall_max + 1)
++#endif
++
++#ifdef CONFIG_COMPAT
++syscall_fn_t *ksu_compat_syscall_table;
++int ksu_compat_dispatcher_nr = -1;
++#endif
++
+ long ksu_call_syscall(int nr, const struct pt_regs *regs)
+ {
+ #ifdef CONFIG_COMPAT
+-    if (unlikely(is_compat_task())) {
+-        pr_err("compat but hooked! Please report this as a issue");
++    if (unlikely(in_compat_syscall())) {
++#ifdef CONFIG_IA32_EMULATION
++        if (!in_ia32_syscall() || !ksu_compat_syscall_table || nr < 0 || nr >= IA32_NR_syscalls)
++            return -ENOSYS;
++        return ksu_compat_syscall_table[array_index_nospec(nr, IA32_NR_syscalls)](regs);
++#else
+         return -EOPNOTSUPP;
++#endif
+     }
+ #endif
+-
+-    return ksu_syscall_table[nr](regs);
++    if (!ksu_syscall_table || nr < 0 || nr >= __NR_syscalls)
++        return -ENOSYS;
++    return ksu_syscall_table[array_index_nospec(nr, __NR_syscalls)](regs);
+ }
+ 
+-#ifndef __NR_syscalls
+-#define __NR_syscalls (__NR_syscall_max + 1)
+-#endif
+-
+ // Hook registration table — read with READ_ONCE from tracepoint/dispatcher
+ // context, written with WRITE_ONCE from init/exit context.
+ static ksu_syscall_hook_fn syscall_hooks[__NR_syscalls];
+@@ -45,6 +60,11 @@ static DEFINE_MUTEX(hooked_entries_lock);
+ static struct syscall_hook_entry hooked_entries[16];
+ static int hooked_count = 0;
+ 
++#ifdef CONFIG_IA32_EMULATION
++static void __init ksu_ia32_hook_init(void);
++static void ksu_ia32_hook_exit(void);
++#endif
++
+ static int patch_syscall_table(int nr, sys_call_ptr_t fn)
+ {
+     if (ksu_syscall_table == NULL)
+@@ -329,6 +349,10 @@ void __init __nocfi ksu_syscall_hook_init(void)
+ #endif
+ #endif
+ 
++#ifdef CONFIG_IA32_EMULATION
++    ksu_ia32_hook_init();
++#endif
++
+     // Find one ni_syscall slot for the dispatcher
+     if (ksu_find_ni_syscall_slots(&ni_slot, 1) < 1) {
+         pr_err("failed to find ni_syscall slot for dispatcher\n");
+@@ -343,6 +367,9 @@ void __init __nocfi ksu_syscall_hook_init(void)
+ void __exit ksu_syscall_hook_exit(void)
+ {
+     int i;
++#ifdef CONFIG_IA32_EMULATION
++    ksu_ia32_hook_exit();
++#endif
+ 
+ #ifdef CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER
+     int ret;
+@@ -394,48 +421,146 @@ clear_state:
+     pr_info("all syscall hooks restored\n");
+ }
+ 
+-// stub here
+-// because i think no usecase
+-// (no device with x64 kernel and x32 userspace)
+ #ifdef CONFIG_COMPAT
+-// --- Dispatcher-based hook API (register/unregister) ---
+-// Register a handler into the dispatcher's routing table for syscall @nr.
+-// When a marked process invokes syscall @nr, the sys_enter tracepoint redirects
+-// it to the unified dispatcher, which looks up @fn by @nr and calls it.
+-// Does NOT modify the syscall table itself — the dispatcher slot is shared.
+-// Returns 0 on success, -EEXIST if already registered, -EINVAL if nr invalid.
++#ifdef CONFIG_IA32_EMULATION
++static ksu_syscall_hook_fn ia32_hooks[IA32_NR_syscalls];
++static struct syscall_hook_entry ia32_entries[16];
++static int ia32_count;
++
++static int patch_ia32_table(int nr, syscall_fn_t fn)
++{
++    if (!ksu_compat_syscall_table || nr < 0 || nr >= IA32_NR_syscalls)
++        return -EINVAL;
++    return ksu_patch_text(&ksu_compat_syscall_table[nr], &fn, sizeof(fn), KSU_PATCH_TEXT_FLUSH_DCACHE);
++}
++
+ int ksu_register_compat_syscall_hook(int nr, ksu_syscall_hook_fn fn)
+ {
+-    return -EOPNOTSUPP;
++    if (!fn || nr < 0 || nr >= IA32_NR_syscalls || ksu_compat_dispatcher_nr < 0)
++        return -EINVAL;
++    if (READ_ONCE(ia32_hooks[nr]))
++        return -EEXIST;
++    WRITE_ONCE(ia32_hooks[nr], fn);
++    return 0;
+ }
+ 
+-// Remove a handler from the dispatcher's routing table for syscall @nr.
+-// The syscall table is not touched — only the dispatcher stops routing @nr.
+ void ksu_unregister_compat_syscall_hook(int nr)
+ {
+-    // do nothing
++    if (nr >= 0 && nr < IA32_NR_syscalls)
++        WRITE_ONCE(ia32_hooks[nr], NULL);
+ }
+ 
+-// Check if a handler is registered in the dispatcher for syscall @nr.
+ bool ksu_has_compat_syscall_hook(int nr)
+ {
+-    return false;
++    return nr >= 0 && nr < IA32_NR_syscalls && READ_ONCE(ia32_hooks[nr]);
+ }
+ 
+-// --- Direct syscall table patching API (hook/unhook) ---
+-// Directly overwrite syscall_table[@nr] with @fn using fixmap + stop_machine.
+-// Saves the original handler to *@old (if non-NULL) and records the entry
+-// for restoration at module exit. Use this for boot-time hooks that replace
+-// a real syscall entry (e.g. ksud hooking __NR_execve/__NR_read/__NR_fstat).
+ void ksu_compat_syscall_table_hook(int nr, syscall_fn_t fn, syscall_fn_t *old)
+ {
+-    // do nothing
++    syscall_fn_t orig;
++    int i;
++
++    if (!ksu_compat_syscall_table || nr < 0 || nr >= IA32_NR_syscalls || !fn)
++        return;
++    mutex_lock(&hooked_entries_lock);
++    for (i = 0; i < ia32_count; ++i)
++        if (ia32_entries[i].nr == nr)
++            break;
++    if (i == ia32_count && ia32_count == ARRAY_SIZE(ia32_entries)) {
++        pr_err("IA32 hook tracking full; table not changed\n");
++        goto unlock;
++    }
++    orig = READ_ONCE(ksu_compat_syscall_table[nr]);
++    if (patch_ia32_table(nr, fn)) {
++        pr_err("IA32 syscall %d patch failed\n", nr);
++        goto unlock;
++    }
++    if (old)
++        *old = orig;
++    if (i == ia32_count) {
++        ia32_entries[i].nr = nr;
++        ia32_entries[i].orig = orig;
++        ia32_count++;
++    }
++unlock:
++    mutex_unlock(&hooked_entries_lock);
+ }
+ 
+ void ksu_compat_syscall_table_unhook(int nr)
+ {
+-    // do nothing
++    int i;
++    mutex_lock(&hooked_entries_lock);
++    for (i = 0; i < ia32_count; ++i) {
++        if (ia32_entries[i].nr != nr)
++            continue;
++        if (patch_ia32_table(nr, ia32_entries[i].orig)) {
++            pr_err("IA32 syscall %d restore failed\n", nr);
++            break;
++        }
++        ia32_entries[i] = ia32_entries[--ia32_count];
++        break;
++    }
++    mutex_unlock(&hooked_entries_lock);
++}
++
++static long __nocfi ksu_ia32_dispatcher(const struct pt_regs *regs)
++{
++    int nr;
++    ksu_syscall_hook_fn fn;
++
++    if (ksu_compat_dispatcher_nr < 0 || regs->orig_ax != ksu_compat_dispatcher_nr)
++        return -ENOSYS;
++    nr = (int)(u32)regs->ax;
++    if (nr < 0 || nr >= IA32_NR_syscalls || nr == ksu_compat_dispatcher_nr)
++        return -ENOSYS;
++    ((struct pt_regs *)regs)->orig_ax = nr;
++    fn = READ_ONCE(ia32_hooks[array_index_nospec(nr, IA32_NR_syscalls)]);
++    return fn ? fn(nr, regs) : -ENOSYS;
++}
++
++static void __init ksu_ia32_hook_init(void)
++{
++    unsigned long ni;
++    int nr;
++
++    ksu_compat_syscall_table = ksu_resolve_symbol_for_functable_hook("ia32_sys_call_table");
++    ni = (unsigned long)ksu_resolve_symbol_for_functable_hook("__ia32_sys_ni_syscall");
++    if (!ksu_compat_syscall_table || !ni) {
++        pr_err("IA32 table or NI syscall missing; IA32 dispatch disabled\n");
++        return;
++    }
++    for (nr = 0; nr < IA32_NR_syscalls; nr++) {
++        if ((unsigned long)READ_ONCE(ksu_compat_syscall_table[nr]) != ni)
++            continue;
++        ksu_compat_syscall_table_hook(nr, ksu_ia32_dispatcher, NULL);
++        if (READ_ONCE(ksu_compat_syscall_table[nr]) == ksu_ia32_dispatcher) {
++            ksu_compat_dispatcher_nr = nr;
++            pr_info("IA32 dispatcher installed at slot %d\n", nr);
++        }
++        return;
++    }
++    pr_err("IA32 NI dispatcher slot not found\n");
+ }
+-#endif
+ 
++static void ksu_ia32_hook_exit(void)
++{
++    while (ia32_count) {
++        int before = ia32_count;
++        ksu_compat_syscall_table_unhook(ia32_entries[ia32_count - 1].nr);
++        if (before == ia32_count) {
++            pr_err("IA32 restore failed; unload would leave a live callback\n");
++            break;
++        }
++    }
++    memset(ia32_hooks, 0, sizeof(ia32_hooks));
++    ksu_compat_dispatcher_nr = -1;
++}
++#else
++int ksu_register_compat_syscall_hook(int nr, ksu_syscall_hook_fn fn) { return -EOPNOTSUPP; }
++void ksu_unregister_compat_syscall_hook(int nr) { }
++bool ksu_has_compat_syscall_hook(int nr) { return false; }
++void ksu_compat_syscall_table_hook(int nr, syscall_fn_t fn, syscall_fn_t *old) { }
++void ksu_compat_syscall_table_unhook(int nr) { }
++#endif
++#endif
+ #endif /* __x86_64__ */
+diff --git a/kernel/infra/seccomp_cache.c b/kernel/infra/seccomp_cache.c
+index 56ec5e54..2bd87868 100644
+--- a/kernel/infra/seccomp_cache.c
++++ b/kernel/infra/seccomp_cache.c
+@@ -48,6 +48,19 @@ void ksu_seccomp_clear_cache(struct seccomp_filter *filter, int nr)
+ #endif
+ }
+ 
++#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
++void ksu_seccomp_allow_ia32_cache(struct seccomp_filter *filter, int nr)
++{
++    BUILD_BUG_ON(offsetof(struct seccomp_filter, cache.allow_native) != 0x10);
++    BUILD_BUG_ON(offsetof(struct seccomp_filter, cache.allow_compat) != 0x50);
++    BUILD_BUG_ON(sizeof(filter->cache.allow_compat) != 64);
++#ifdef SECCOMP_ARCH_COMPAT
++    if (filter && nr >= 0 && nr < SECCOMP_ARCH_COMPAT_NR)
++        set_bit(nr, filter->cache.allow_compat);
++#endif
++}
++#endif
++
+ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
+ {
+     if (!filter) {
+diff --git a/kernel/infra/seccomp_cache.h b/kernel/infra/seccomp_cache.h
+index 46d9d0d4..485d3987 100644
+--- a/kernel/infra/seccomp_cache.h
++++ b/kernel/infra/seccomp_cache.h
+@@ -7,6 +7,9 @@
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+ extern void ksu_seccomp_clear_cache(struct seccomp_filter *filter, int nr);
+ extern void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr);
++#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
++extern void ksu_seccomp_allow_ia32_cache(struct seccomp_filter *filter, int nr);
++#endif
+ #endif
+ 
+ #endif
+\ No newline at end of file
+diff --git a/kernel/policy/app_profile.c b/kernel/policy/app_profile.c
+index 540b721a..fb7e7bf3 100644
+--- a/kernel/policy/app_profile.c
++++ b/kernel/policy/app_profile.c
+@@ -105,7 +105,20 @@ void disable_seccomp(void)
+ 
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) || defined(KSU_OPTIONAL_SECCOMP_FILTER_RELEASE))
+     struct task_struct *fake;
++#ifdef CONFIG_KSU_TARGET_MUMU_A15_ABI
++#if !defined(CONFIG_X86_64) || LINUX_VERSION_CODE != KERNEL_VERSION(6, 1, 90)
++#error "The target task ABI adapter is restricted to the audited x86_64 6.1.90 kernel"
++#endif
++    /* Bound to the audited target task layout, not a generic kernel workaround. */
++    BUILD_BUG_ON(sizeof(*fake) != 8256);
++    BUILD_BUG_ON(offsetof(struct task_struct, sighand) != 0x860);
++    BUILD_BUG_ON(offsetof(struct task_struct, seccomp) != 0x8c8);
++    BUILD_BUG_ON(offsetof(struct task_struct, seccomp.filter) != 0x8d0);
++    BUILD_BUG_ON(sizeof(fake->seccomp) != 16);
++    fake = kzalloc(sizeof(*fake), GFP_ATOMIC);
++#else
+     fake = kmalloc(sizeof(*fake), GFP_ATOMIC);
++#endif
+     if (!fake) {
+         pr_err("%s: cannot allocate fake struct!\n", __func__);
+         return;
+@@ -123,7 +136,18 @@ void disable_seccomp(void)
+ #endif
+ 
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) || defined(KSU_OPTIONAL_SECCOMP_FILTER_RELEASE))
++#ifdef CONFIG_KSU_TARGET_MUMU_A15_ABI
++    /*
++     * This target's runtime task allocation depends on its FPU size and may be
++     * shorter than sizeof(task_struct). Never copy the whole current task.
++     * Its audited seccomp_filter_release reads only sighand and seccomp.filter;
++     * transfer the detached filter reference without taking an extra reference.
++     */
++    fake->seccomp = current->seccomp;
++    fake->sighand = NULL;
++#else
+     memcpy(fake, current, sizeof(*fake));
++#endif
+ #endif
+     current->seccomp.mode = 0;
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0) && !defined(KSU_OPTIONAL_SECCOMP_FILTER_RELEASE))
+diff --git a/kernel/runtime/ksud_integration.c b/kernel/runtime/ksud_integration.c
+index bfe7cbf5..7bea4b91 100644
+--- a/kernel/runtime/ksud_integration.c
++++ b/kernel/runtime/ksud_integration.c
+@@ -974,7 +974,7 @@ void ksu_execve_hook_ksud(const struct pt_regs *regs)
+     struct user_arg_ptr argv;
+ 
+ #ifdef CONFIG_COMPAT
+-    argv.is_compat = is_compat_task();
++    argv.is_compat = in_compat_syscall();
+     if (argv.is_compat)
+         argv.ptr.compat = (const compat_uptr_t __user *)PT_REGS_USER_PTR(regs, 2);
+     else
+@@ -990,7 +990,7 @@ void ksu_execveat_hook_ksud(const struct pt_regs *regs)
+     struct user_arg_ptr argv;
+ 
+ #ifdef CONFIG_COMPAT
+-    argv.is_compat = is_compat_task();
++    argv.is_compat = in_compat_syscall();
+     if (argv.is_compat)
+         argv.ptr.compat = (const compat_uptr_t __user *)PT_REGS_USER_PTR(regs, 3);
+     else
+diff --git a/kernel/supercall/supercall.c b/kernel/supercall/supercall.c
+index 70087794..208beb1c 100644
+--- a/kernel/supercall/supercall.c
++++ b/kernel/supercall/supercall.c
+@@ -174,6 +174,29 @@ static int reboot_handler_pre(struct kprobe *p, struct pt_regs *regs)
+     return 0;
+ }
+ 
++
++/* FD-only IA32 transport trial: no dispatcher, setuid or seccomp-cache change. */
++#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
++static bool reboot_ia32_fd_registered;
++static int reboot_ia32_fd_pre(struct kprobe *p, struct pt_regs *regs)
++{
++    struct pt_regs *real = PT_REAL_REGS(regs);
++    int magic1 = (int)(u32)real->bx;
++    int magic2 = (int)(u32)real->cx;
++    unsigned int cmd = (u32)real->dx;
++    void __user *arg = compat_ptr((compat_uptr_t)(u32)real->si);
++
++    /* The trial deliberately exposes only ordinary FD creation, no extensions. */
++    if (magic1 == KSU_INSTALL_MAGIC1 && magic2 == KSU_INSTALL_MAGIC2 && cmd == 0)
++        ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
++    return 0;
++}
++static struct kprobe reboot_ia32_fd_kp = {
++    .symbol_name = "__ia32_sys_reboot",
++    .pre_handler = reboot_ia32_fd_pre,
++};
++#endif
++
+ static struct kprobe reboot_kp = {
+     .symbol_name = REBOOT_SYMBOL,
+     .pre_handler = reboot_handler_pre,
+@@ -193,12 +216,22 @@ void __init ksu_supercalls_init(void)
+     } else {
+         pr_info("reboot kprobe registered successfully\n");
+     }
++#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
++    rc = register_kprobe(&reboot_ia32_fd_kp);
++    reboot_ia32_fd_registered = !rc;
++    if (rc)
++        pr_err("IA32 FD kprobe failed: %d\n", rc);
++#endif
+ #endif
+ }
+ 
+ void __exit ksu_supercalls_exit(void)
+ {
+ #ifdef CONFIG_KSU_TRACEPOINT_HOOK
++#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
++    if (reboot_ia32_fd_registered)
++        unregister_kprobe(&reboot_ia32_fd_kp);
++#endif
+     unregister_kprobe(&reboot_kp);
+ #endif
+     ksu_supercall_cleanup_state();
+diff --git a/kernel/hook/x86_64/ia32_abi.h b/kernel/hook/x86_64/ia32_abi.h
+new file mode 100644
+--- /dev/null
++++ b/kernel/hook/x86_64/ia32_abi.h
+@@ -0,0 +1,40 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef KSU_X86_IA32_ABI_H
++#define KSU_X86_IA32_ABI_H
++
++#include <linux/compat.h>
++#include <linux/ptrace.h>
++#include <asm/unistd.h>
++
++/* This adapter is scoped to the audited x86-64 / IA32 target. */
++#if defined(CONFIG_X86_X32_ABI) || defined(CONFIG_X86_X32)
++#error "IA32 adapter requires a separate audit before enabling the x32 ABI"
++#endif
++
++#ifdef CONFIG_IA32_EMULATION
++#if IA32_NR_syscalls != 451
++#error "IA32 syscall count differs from the audited target table"
++#endif
++static inline unsigned long ksu_ia32_syscall_arg(const struct pt_regs *regs, unsigned int index)
++{
++    switch (index) {
++    case 0: return (u32)regs->bx;
++    case 1: return (u32)regs->cx;
++    case 2: return (u32)regs->dx;
++    case 3: return (u32)regs->si;
++    case 4: return (u32)regs->di;
++    case 5: return (u32)regs->bp;
++    default: return 0;
++    }
++}
++
++static inline bool ksu_ia32_prepare_dispatch(struct pt_regs *regs, long nr, int dispatcher)
++{
++    if (nr < 0 || nr >= IA32_NR_syscalls || dispatcher < 0 || dispatcher >= IA32_NR_syscalls)
++        return false;
++    regs->ax = (u32)nr;
++    regs->orig_ax = dispatcher;
++    return true;
++}
++#endif
++#endif

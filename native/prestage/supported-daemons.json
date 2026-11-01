@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "fixedOfficialSigner": "d3469712b6214462764a1d8d3e5cbe1d6819a0b629791b9f4101867821f1df64",
+  "supportedUapi": 6,
+  "runtimeTrust": "compiled_into_pinned_boot_helper_not_mutable_guest_json",
+  "releases": [
+    {
+      "releaseName": "v4.2.0-rc3",
+      "versionCode": 35253,
+      "package": "com.resukisu.resukisu",
+      "apkSha256": "397090825f4babfb83bf61724e49e90f63dd276516a1f241f8e6a61b3f34f9b1",
+      "signerSha256": "d3469712b6214462764a1d8d3e5cbe1d6819a0b629791b9f4101867821f1df64",
+      "daemonSha256": "d9343627fe3ee8587f883aa9b2ec56fde1025567326cd100ef5219436bc5fce5",
+      "daemonBytes": 6001344,
+      "elfClass": 64,
+      "elfMachine": 62,
+      "elfType": 3,
+      "uapiVersion": 6,
+      "sourceRevision": "5785bdb8091304322f597f67d50e0b79f9815cb2",
+      "sourceUapiHeaderSha256": "ca9b0db60a58ad8252d268f75b4283676e2fb95c5274d5b8f482ac74607e7d9d",
+      "sourceApkAssociationMaintainerReviewed": true,
+      "sourceBinaryReproducibilityProven": false,
+      "seedBaseline": true,
+      "deviceUpgradeValidated": false
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1113,6 +1113,12 @@
+ 	struct io_uring_task		*io_uring;
+ #endif
+ 
++	/* Opaque vendor layout reservation. Only for the independently audited
++	 * x86_64 kernel SHA256 9e7bb12dd0248829556a416dc7a768918f91a534f72cfef3a36c385c1ae8bfad.
++	 * No field names or semantics are reconstructed here.
++	 */
++	u8				ksu_target_vendor_reservation[24];
++
+ 	/* Namespaces: */
+ 	struct nsproxy			*nsproxy;
+ 
