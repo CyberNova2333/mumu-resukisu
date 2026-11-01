@@ -7,6 +7,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import struct
@@ -17,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 NATIVE = ROOT / 'native'
 DAEMON_SHA = 'd9343627fe3ee8587f883aa9b2ec56fde1025567326cd100ef5219436bc5fce5'
 DAEMON_BYTES = 6001344
+STOCK_SHA = 'c87a4697bb4e1bf52de82271ce73147276e13f9f0607e12970cb5ec095623a78'
+STOCK_BYTES = 3753880
 
 def digest(path):
     with Path(path).open('rb') as stream:
@@ -93,9 +96,32 @@ def verify_catalog():
     require((NATIVE / 'prestage/catalog.h').read_text() == body, 'Frozen compiled catalog differs from JSON')
     return catalog
 
+def verify_stock(path):
+    """Pin a migration source separately; never add it to the UAPI6 catalog."""
+    record = json.loads((NATIVE / 'prestage/stock-daemon.json').read_text())
+    require(record['schemaVersion'] == 1 and record['bytes'] == STOCK_BYTES and record['sha256'] == STOCK_SHA,
+            'Stock migration identity changed')
+    require(record['sourceSystemSha256'] == '82a7f8e6fce62c1744221a90b63a69eafc80537105f754f9cf5ef142226e70d1' and
+            record['sourcePath'] == '/system/xbin/dusk' and
+            (record['elfClass'], record['elfMachine'], record['elfType']) == (64, 62, 3), 'Stock provenance changed')
+    header = (NATIVE / 'prestage/stock-pin.h').read_text()
+    require(f'#define STOCK_DAEMON_BYTES {STOCK_BYTES}U' in header and f'"{STOCK_SHA}"' in header,
+            'Compiled stock pin differs from record')
+    array = re.search(r'stock_daemon_sha\[32\]=\{([^}]+)\}', header)
+    require(array is not None and bytes(int(x, 16) for x in array.group(1).split(',')).hex() == STOCK_SHA,
+            'Compiled stock hash differs from record')
+    path = Path(path)
+    require(path.is_file() and not path.is_symlink() and path.stat().st_size == STOCK_BYTES and digest(path) == STOCK_SHA,
+            'Unrecognized stock daemon input')
+    with path.open('rb') as stream:
+        elf = stream.read(64)
+    require(elf[:6] == b'\x7fELF\x02\x01' and struct.unpack_from('<HH', elf, 16) == (3, 62), 'Stock ELF identity mismatch')
+    return path.resolve()
+
 def build(args):
     uid, daemon = load_config(args.config)
     catalog = verify_catalog()
+    stock = verify_stock(args.stock_daemon)
     out = safe_output(args.output)
     runner = Runner(args)
     require(runner.run(['id','-u']).strip() != '0', 'Host tests must run as an ordinary user')
@@ -134,6 +160,11 @@ def build(args):
             if name == 'resukisu-normal-check':
                 require(json.loads(gate)['expectedManagerUid'] == uid, 'Manager UID report did not use configuration')
             save()
+        stock_unit = out / 'resukisu-stock-migration-unit'
+        runner.run(['gcc',*models,*common,runner.path(NATIVE/'prestage/stock-unit.c'),'-o',runner.path(stock_unit)])
+        stock_tests = runner.run([runner.path(stock_unit), runner.path(daemon), runner.path(stock)])
+        report['hostTests']['stock-migration'] = {'passed': True, 'output': stock_tests.strip()}
+        save()
         flags32=['-m32','-std=c11','-Os','-ffreestanding','-fno-builtin','-fno-pie','-fno-stack-protector','-fno-asynchronous-unwind-tables','-nostdlib','-static','-no-pie','-Wall','-Wextra','-Werror','-Wno-misleading-indentation','-Wno-unused-function','-Wl,--build-id=none,-z,noexecstack']
         binary=out/'resukisu-su32'; unit=out/'resukisu-su32-unit'
         for source,target in [('probe.c',binary),('unit32.c',unit)]:
@@ -161,7 +192,11 @@ def build(args):
             elf=runner.run(['readelf','-l',runner.path(out/name)])
             require('INTERP' not in elf,'Unexpected dynamic interpreter')
         report.update(status='host_tests_passed_not_device_validated', finishedAt=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                      expectedManagerUid=uid, daemonSha256=DAEMON_SHA, catalogSha256=digest(NATIVE/'prestage/supported-daemons.json'))
+                      expectedManagerUid=uid, daemonSha256=DAEMON_SHA, catalogSha256=digest(NATIVE/'prestage/supported-daemons.json'),
+                      stockDaemonSha256=STOCK_SHA, stockMigrationPinSha256=digest(NATIVE/'prestage/stock-daemon.json'),
+                      stockMigrationSourceSha256=digest(NATIVE/'prestage/stock-migration.h'),
+                      stockMigrationCompiledPinSha256=digest(NATIVE/'prestage/stock-pin.h'),
+                      stockMigrationModelSha256=digest(NATIVE/'prestage/stock-unit.c'))
     except BaseException as e:
         report.update(status='failed', failureType=type(e).__name__, failureReason=str(e))
         raise
@@ -172,6 +207,7 @@ def build(args):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--config',type=Path,required=True)
+    p.add_argument('--stock-daemon',type=Path,required=True,help='Exact original system daemon used only by migration host tests; never executed')
     p.add_argument('--output',type=Path,default=ROOT/'build/userspace')
     p.add_argument('--wsl-distro');p.add_argument('--wsl-user')
     p.add_argument('--model-python',default='python3',help='Linux Python with unicorn and pyelftools')

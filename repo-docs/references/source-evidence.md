@@ -17,7 +17,8 @@
 | 分区外字节必须不变 | [镜像测试](../../tests/test_images.py) | Confirmed | 离线快照测试 | walkthrough |
 | 回退依赖原备份和事务 | [控制器](../../src/mumu_resukisu/controller.py) | Confirmed | 不含数据盘；未知中断状态拒绝猜测覆盖 | walkthrough |
 | 原生源码按固定输入构建 | [构建器](../../scripts/build-native.py) | Confirmed | 外部源码与工具链由用户提供 | code-map |
-| 新入口缺少设备验收 | [目标状态](../../targets/mumu-android15-x86_64/profile.json) | Confirmed | 历史固定用例成功不代替此次重测 | README |
+| 精确原厂daemon先持久备份再迁移，未知内容不覆盖 | [启动迁移](../../native/prestage/stock-migration.h)、[原厂身份](../../native/prestage/stock-daemon.json)、[失败模型](../../native/prestage/stock-unit.c) | Confirmed | 主机失败注入不等于实际断电；数据盘备份不随系统盘事务回退 | walkthrough、image-boundaries、code-map |
+| 重构入口已完成原厂迁移、冷启动及授权前拒绝的阶段验证 | [分阶段验证记录](../../docs/validation.md)、[目标状态](../../targets/mumu-android15-x86_64/profile.json) | Confirmed | 授权后Root、再次冷启动与Firefox附加未测试；总体验收仍未完成 | README、walkthrough |
 | 最新发行查询不改变目标版本 | [获取器](../../src/mumu_resukisu/releases.py)、[下载测试](../../tests/test_releases.py)、[固定原生目标](../../native/driver/target-profile.json) | Confirmed | 下载不验证 APK 签名或升级兼容 | release-lifecycle |
 | 登记只产生待审材料 | [登记器](../../scripts/register-release.py)、[登记测试](../../tests/test_release_registration.py) | Confirmed | 源码与 APK 关联仍由维护者审查 | release-lifecycle |
 | 站点使用同一份指南正文 | [站点首页](../../docs-site/index.md)、[默认主题配置](../../docs-site/.vitepress/config.mjs)、[链接转换](../../docs-site/.vitepress/guide-links.mjs) | Confirmed | 构建文档不构建业务；源码定位不复制文件 | README、code-map |
