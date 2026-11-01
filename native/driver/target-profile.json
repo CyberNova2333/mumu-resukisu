@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "mumu-android15-x86_64",
+  "resukisuCommit": "5785bdb8091304322f597f67d50e0b79f9815cb2",
+  "kernelCommit": "c034535679d056565875fec24925fd21309040c5",
+  "kernelArchiveSha256": "3f9644ae502769ef9c8f6f0d6489a2d42e500faa20497061d04b02fbf26a5836",
+  "preparedConfigSha256": "2a8e4358afe32008951a92df1d2785441cff7d96a8cae176cfe9b7b50f8eb9e7",
+  "kernelSha256": "48e7b624b3652ccbc215e25b24432bab052081b55aa806e77c28fe4c8bd9a685",
+  "kernelElfSha256": "9e7bb12dd0248829556a416dc7a768918f91a534f72cfef3a36c385c1ae8bfad",
+  "kernelRelease": "6.1.90-perf+",
+  "compilerVersionContains": [
+    "19.0.1",
+    "r536225"
+  ],
+  "moduleBytesHistorical": 325448,
+  "moduleStructBytes": 960,
+  "moduleInitOffset": 368,
+  "moduleExitOffset": 848,
+  "taskStructBytes": 8256,
+  "taskSighandOffset": 2144,
+  "taskSeccompOffset": 2248,
+  "runtimeParameters": "norc=1 preinit=0",
+  "currentBuildDeviceValidated": false
+}

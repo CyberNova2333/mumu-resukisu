@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mumu-resukisu"
+version = "0.1.0"
+description = "Target-bound ReSukiSU adaptation and offline image tooling"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later AND GPL-2.0-only"
+
+[project.scripts]
+mumu-resukisu = "mumu_resukisu.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
