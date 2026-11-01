@@ -6,7 +6,23 @@
 
 在忽略目录 `inputs/` 保存原始 base、停止实例的系统差分盘副本、原始内核及其 ELF、固定上游源码／ACK 归档、目标配置与核心符号证据。APK 中的配套 daemon 同样由用户本地提供。不要把原始磁盘复制进源码目录或发布仓库。
 
-原生构建需要 Clang／LLVM、make、musl-gcc、gcc、binutils，以及 pyelftools；用户态模型另需 Unicorn。分区处理需要 e2fsprogs、libext2fs 开发头、zstd。依赖由用户已有环境提供，脚本不会自动下载或安装软件。
+原生构建需要 Clang／LLVM、make、musl-gcc、gcc、binutils，以及 pyelftools；用户态模型另需 Unicorn。分区处理需要 e2fsprogs、libext2fs 开发头、zstd。依赖由用户已有环境提供；离线构建脚本不会下载或安装软件。
+
+### 获取官方最新发行版
+
+查询和下载是独立命令，可以在准备镜像前运行：
+
+```powershell
+mumu-resukisu fetch-release --check
+mumu-resukisu fetch-release --channel prerelease --check
+mumu-resukisu fetch-release --channel prerelease --output inputs/latest-release
+```
+
+默认查询正式版；`prerelease` 查询包含预发行版在内、按发布时间最新的一项。上游没有正式版时，默认查询明确失败，不自动选择预发行版。输出目录必须是新的本地目录，取得的 APK、源码归档和清单留在忽略的 `inputs/` 中。
+
+下载器只接受已核对身份的官方仓库。原 ReSukiSU 地址目前迁移至 BakaSU；仓库身份、发布标签、对应 Git 提交、资源地址和 SHA256 会写入清单。资源摘要与上游提供的摘要核对，源码归档按标签解析出的完整提交获取。它不执行 APK、不解压归档、不修改兼容清单或连接实例。清单中的本地摘要不能单独证明 APK 签名或源码与二进制对应关系。
+
+最新发行版用于版本调查与后续适配。当前原生构建仍使用目标描述中的固定提交；下载源码归档不能直接替代 `--resukisu-source` 要求的 Git 检出。准备源码 Git 目录时，显式检出已审查的提交；然后按[官方版本登记流程](../native/README.md#登记后续官方版本)核对 APK 签名、包身份、UAPI 和版本关联。登记只生成待审材料，新版本还要完成补丁审查、重新构建和设备验收，才能扩大支持范围。
 
 在已停止的实例上取得输入快照后，可提取三个目标分区：
 
