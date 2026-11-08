@@ -133,8 +133,8 @@ Python测试采用临时磁盘夹具和假管理器；Windows文件句柄、链�
 
 | 重要代码 | 功能 | 关键符号 | 调用方 / 使用方 | 验证入口 |
 | --- | --- | --- | --- | --- |
-| `docs-site/.vitepress/config.mjs` | 默认主题导航、搜索及 Markdown 处理。 | — | VitePress 文档构建 | `npm --prefix docs-site run docs:build` |
-| `docs-site/.vitepress/guide-links.mjs` | 站内页面路由与仓库源码定位显示。 | — | VitePress 文档构建 | `npm --prefix docs-site test` |
+| `docs-site/.vitepress/config.mjs` | 默认主题导航、搜索及 Markdown 处理。 | — | VitePress 文档构建 | `pnpm --dir docs-site run docs:build` |
+| `docs-site/.vitepress/guide-links.mjs` | 站内页面路由与仓库源码定位显示。 | — | VitePress 文档构建 | `pnpm --dir docs-site test` |
 | `index.md`、`modules/`、`walkthroughs/`、`references/` | 仅 include 原指南，无第二套正文。 | — | VitePress 文档构建 | 文档构建的内部链接检查 |
 
 ## 覆盖范围
