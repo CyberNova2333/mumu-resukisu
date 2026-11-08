@@ -35,7 +35,7 @@
 需要 Python 3.11+；原生构建和分区处理使用 Linux／WSL，实例绑定与写盘使用 Windows。当前以源码检出方式使用，安装 Python 命令后仍需保留仓库中的目标描述、原生源码和脚本。
 
 ```powershell
-git clone https://cnb.cool/CyberNova2333/mumu-resukisu.git
+git clone https://github.com/CyberNova2333/mumu-resukisu.git
 cd mumu-resukisu
 python -m venv .venv
 .venv/Scripts/python -m pip install -e .

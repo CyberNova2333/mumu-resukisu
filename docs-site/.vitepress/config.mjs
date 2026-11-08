@@ -23,7 +23,13 @@ export default defineConfig({
   markdown: { config: guideLinks(pages) },
   themeConfig: {
     siteTitle: 'MuMu ReSukiSU',
-    nav: [{ text: '阅读路径', link: '/' }, { text: '项目仓库', link: 'https://github.com/CyberNova2333/mumu-resukisu' }],
+    nav: [
+      { text: '官网首页', link: '/' },
+      { text: '文档指南', link: '/walkthroughs/one-real-run' },
+      { text: '代码地图', link: '/code-map' },
+      { text: '镜像与恢复', link: '/modules/image-boundaries' },
+      { text: 'GitHub', link: 'https://github.com/CyberNova2333/mumu-resukisu' },
+    ],
     sidebar: [{ text: '项目指南', items: navigation.map(([, route, text]) => ({ text, link: '/' + route })) }],
     search: { provider: 'local' },
     outline: { level: [2, 3], label: '本页目录' },
