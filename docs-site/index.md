@@ -35,6 +35,21 @@ features:
 
 它摒弃了盲目修改宿主系统文件的暴力方式，坚持“先有固定引擎证据和本地输入、再离线构建候选、最后才允许绑定实例受控写盘”的原则，确保玩家与开发者的开发环境在获得 Root 权限的同时拥有绝对的稳定保障。
 
+
+## 架构全景
+
+<div class="archify-diagram-card" style="margin: 1.5rem 0; border: 1px solid var(--vp-c-border); border-radius: 12px; overflow: hidden; background: var(--vp-c-bg-soft); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; background: var(--vp-c-bg-elv); border-bottom: 1px solid var(--vp-c-border); font-size: 13px;">
+    <span style="font-weight: 600; color: var(--vp-c-text-1); display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 16px;">📐</span> 内核桥接与权限提权系统（交互式架构图表，支持平移 / 缩放 / 探查）
+    </span>
+    <a href="/diagrams/resukisu-architecture.html" target="_blank" rel="noreferrer" style="font-size: 12px; color: var(--vp-c-brand-1); text-decoration: none; font-weight: 500;">
+      在新窗口全屏打开 ↗
+    </a>
+  </div>
+  <iframe src="/diagrams/resukisu-architecture.html" width="100%" height="520px" frameborder="0" style="display: block; border: none;" allowfullscreen loading="lazy"></iframe>
+</div>
+
 ## 怎么用 / 快速上手
 
 ### 1. 本地候选构建与检查
