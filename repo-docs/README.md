@@ -2,7 +2,7 @@
 
 本项目解决的是“已有模拟器引擎怎样装入配套Root实现，并能验证与回退”。先有固定引擎证据和本地输入，再构建候选，最后才允许绑定实例写盘。它没有自动适配任意内核的能力。
 
-公开项目为 [CyberNova2333/mumu-resukisu](https://cnb.cool/CyberNova2333/mumu-resukisu)。独立工具采用 [GPLv3](../LICENSE)，内核等继承组件保留各自许可，详见[来源清单](../THIRD_PARTY.md)。先跟随一次本地候选的交接，再查具体机制和修改位置。
+公开项目为 [CyberNova2333/mumu-resukisu](https://github.com/CyberNova2333/mumu-resukisu)。独立工具采用 [GPLv3](../LICENSE)，内核等继承组件保留各自许可，详见[来源清单](../THIRD_PARTY.md)。先跟随一次本地候选的交接，再查具体机制和修改位置。
 
 ## 阅读路径
 
