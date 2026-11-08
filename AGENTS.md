@@ -12,7 +12,7 @@
 
 ## 验证与文档站
 
-主机测试使用 `python -m unittest discover -s tests -v`。文档链接测试使用 `npm --prefix docs-site test`，文档构建使用 `npm --prefix docs-site run docs:build`；先核对当前脚本定义，再按改动选择验证。文档站采用 VitePress 默认主题，从 `repo-docs/` 引用正文，产物与原生构建分离。文档通过不能记作设备验收。
+主机测试使用 `python -m unittest discover -s tests -v`。文档链接测试使用 `pnpm --dir docs-site test`，文档构建使用 `pnpm --dir docs-site run docs:build`；先核对当前脚本定义，再按改动选择验证。文档站采用 VitePress 默认主题，从 `repo-docs/` 引用正文，产物与原生构建分离。文档通过不能记作设备验收。
 
 ## Repo docs
 

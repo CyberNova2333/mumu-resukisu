@@ -86,9 +86,9 @@ mumu-resukisu fetch-release --channel prerelease --output inputs/latest-release
 指南正文维护在 `repo-docs/`，独立站点以 VitePress 默认主题引用同一份正文。准备 Node.js 22+，在仓库根运行：
 
 ```powershell
-npm --prefix docs-site ci
-npm --prefix docs-site run docs:build
-npm --prefix docs-site run docs:dev -- --host 127.0.0.1
+pnpm --dir docs-site install --frozen-lockfile
+pnpm --dir docs-site run docs:build
+pnpm --dir docs-site run docs:dev -- --host 127.0.0.1
 ```
 
 输出仅位于 `docs-site/.vitepress/dist/`。指南链接在站内跳转，指南外的源码链接显示为仓库相对路径；本地输入、镜像、配置和源码文件不会复制到站点。构建文档不会构建原生工具、写盘或部署。
