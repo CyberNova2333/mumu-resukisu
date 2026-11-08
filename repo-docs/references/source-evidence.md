@@ -25,4 +25,4 @@
 
 以上源码链接以仓库根目录为基准的相对位置，在文档验证阶段核对；本文件不存储运行时路径或实例身份。
 
-文档格式参考公开 [modelbridge](https://cnb.cool/CyberNova2333/modelbridge) 的已提交 README、Standard 指南和默认主题站点结构；只借鉴阅读组织与呈现方式，不把参考项目的业务边界、验证结果或未提交主题带入本项目。实际验证记录和提交锚点见[同步记录](../change-log.md)。
+文档格式参考公开 [modelbridge](https://github.com/CyberNova2333/modelbridge) 的已提交 README、Standard 指南和默认主题站点结构；只借鉴阅读组织与呈现方式，不把参考项目的业务边界、验证结果或未提交主题带入本项目。实际验证记录和提交锚点见[同步记录](../change-log.md)。
