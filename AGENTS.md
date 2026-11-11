@@ -19,3 +19,10 @@
 `repo-docs/` is the living guide; start with [the reading path](repo-docs/README.md) and [the main walkthrough](repo-docs/walkthroughs/one-real-run.md).
 This repo's `repo-docs/` guide is reader-facing Chinese documentation. When updating reader-facing guide pages, use `repo-docs-zh` when available; keep Chinese reader handles in the prose and preserve exact source identifiers for lookup.
 Read current source, scripts and tests before treating the guide as implementation truth. Choose `none`, `answer-only`, `foreground patch`, or `background sync` according to the actual knowledge gap. Patch the smallest owning page before the final answer when a durable gap would mislead. Update the walkthrough for boundary changes and the code map for responsibility changes. Record meaningful guide changes and actual verification in `repo-docs/change-log.md` with `Synced through <sha>`. Historical device evidence does not validate a refactored implementation.
+
+## 项目简介与主页元数据 (meta.json)
+
+- **项目名称**：MuMu ReSukiSU · MuMu 模拟器 ReSukiSU Root 安装与回退脚本
+- **项目简介**：针对特定版本 MuMu Android 15 x86_64 模拟器的 ReSukiSU Root 镜像组装与单实例安装脚本，写入前会核对原始镜像指纹并保留备份以便回退。
+- **公开状态**：已公开 (public) · 分类：`system-infra` · 主语言：`Python`
+- **元数据说明**：仓库根目录的 [`meta.json`](meta.json) 供个人主页（[`cybernova-homepage`](https://github.com/CyberNova2333/cybernova-homepage)）读取项目简介、功能说明、技术栈和常用命令。修改项目主要功能、技术栈或文档站链接时请同步更新 `meta.json`。

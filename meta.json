@@ -1,0 +1,62 @@
+{
+  "$schema": "https://raw.githubusercontent.com/CyberNova2333/cybernova-homepage/main/public/schemas/repo-meta.v1.json",
+  "schemaVersion": 1,
+  "slug": "mumu-resukisu",
+  "name": "MuMu ReSukiSU",
+  "title": {
+    "zh": "MuMu ReSukiSU · MuMu 模拟器 ReSukiSU Root 安装与回退脚本",
+    "en": "MuMu ReSukiSU · ReSukiSU Root Installer & Rollback Scripts for MuMu Android 15"
+  },
+  "visibility": "public",
+  "status": "active",
+  "category": "system-infra",
+  "featured": false,
+  "order": 11,
+  "repository": "https://github.com/CyberNova2333/mumu-resukisu",
+  "homepage": "https://cybernova2333.github.io/mumu-resukisu/",
+  "docsUrl": "https://cybernova2333.github.io/mumu-resukisu/docs/",
+  "license": "GPL-3.0-only",
+  "primaryLanguage": "Python",
+  "techStack": [
+    "Python 3.11+",
+    "C",
+    "Android 15 x86_64",
+    "ReSukiSU",
+    "KernelSU"
+  ],
+  "tags": [
+    "android-emulator",
+    "kernelsu",
+    "resukisu",
+    "installer"
+  ],
+  "summary": {
+    "zh": "针对特定版本 MuMu Android 15 x86_64 模拟器的 ReSukiSU Root 镜像组装与单实例安装脚本，写入前会核对原始镜像指纹并保留备份以便回退。",
+    "en": "ReSukiSU root image builder and single-instance installer for a specific MuMu Android 15 x86_64 emulator build, verifying image fingerprints and keeping backups for rollback."
+  },
+  "highlights": {
+    "zh": [
+      "在本地对用户自己的模拟器原始镜像做离线替换组装，写入前核对目标版本的文件指纹",
+      "只修改指定的单个已停止模拟器实例，不改动公共基础盘，并支持一键恢复原状",
+      "已在该目标版本的模拟器上验证过 32/64 位 su 调用与重启保留"
+    ],
+    "en": [
+      "Builds patched images offline from the user's own base image after verifying target file fingerprints",
+      "Applies changes to a single stopped emulator instance with backup and rollback support",
+      "Tested for 32/64-bit su invocation and persistence across reboots on the target emulator version"
+    ]
+  },
+  "quickStart": [
+    "python -m unittest discover -s tests -v",
+    "pnpm --dir docs-site run docs:build"
+  ],
+  "roadmap": {
+    "stage": "按版本维护",
+    "stageEn": "Target-Specific",
+    "milestone": {
+      "zh": "已完成目标 Android 15 x86_64 模拟器版本的安装、回退与 su 调用测试。",
+      "en": "Install, rollback, and su checks completed for the target Android 15 x86_64 emulator build."
+    }
+  },
+  "updatedAt": "2026-11-11"
+}
