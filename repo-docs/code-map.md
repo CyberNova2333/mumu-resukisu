@@ -15,7 +15,7 @@
 | `scripts/` | 构建与分区准备入口 | `build-*`、`prepare-*` | 调用既有工具链，写新本地输出。 |
 | `targets/` | 引擎指纹与分区范围 | `profile.json` | 所有镜像操作的输入边界。 |
 | `tests/` | Python主机故障模型 | `test_images.py`、`test_controller.py` | 拒绝错误输入、验证失败与回退路径。 |
-| `docs-site/` | 独立默认主题文档站 | 站点配置、链接转换、正文引用页 | 将同一份指南转换成独立静态页面。 |
+| `docs-site/` | 双语 VitePress 文档站 | `config.mts`、链接转换、正文复用页与构建/配置/验证页面 | 提供中英文分层文档站并直接嵌入核心指南、Archify 架构图与源码定位。 |
 
 修改命令参数从 [CLI](../src/mumu_resukisu/cli.py) 开始；修改写盘条件从 [绑定](../src/mumu_resukisu/binding.py) 和 [控制器](../src/mumu_resukisu/controller.py) 开始；修改差分语义从 [镜像实现](../src/mumu_resukisu/images.py) 开始。原生构建入口分别为 [内核与加载器](../scripts/build-native.py) 和 [用户态辅助工具](../scripts/build-userspace.py)。
 
@@ -129,13 +129,13 @@ Python测试采用临时磁盘夹具和假管理器；Windows文件句柄、链�
 
 ## `docs-site/`
 
-站点只把指南正文转换成静态页面，使用 VitePress 默认主题。源码树之外的本地输入不作为站点资源；文档生成不运行设备命令。
+站点在保留双语切换与 Archify 交互架构图的同时，通过 `@include` 复用本指南核心页并补充构建、参数契约与分阶段验证文档。源码树之外的本地输入不作为站点资源；文档生成不运行设备命令。
 
 | 重要代码 | 功能 | 关键符号 | 调用方 / 使用方 | 验证入口 |
 | --- | --- | --- | --- | --- |
-| `docs-site/.vitepress/config.mjs` | 默认主题导航、搜索及 Markdown 处理。 | — | VitePress 文档构建 | `pnpm --dir docs-site run docs:build` |
-| `docs-site/.vitepress/guide-links.mjs` | 站内页面路由与仓库源码定位显示。 | — | VitePress 文档构建 | `pnpm --dir docs-site test` |
-| `index.md`、`modules/`、`walkthroughs/`、`references/` | 仅 include 原指南，无第二套正文。 | — | VitePress 文档构建 | 文档构建的内部链接检查 |
+| `docs-site/.vitepress/config.mts` | 中英文导航、三阶段目录、本地搜索及 Markdown 处理。 | `pages`、`guideLinks` | VitePress 文档构建 | `pnpm --dir docs-site run docs:build` |
+| `docs-site/.vitepress/guide-links.mjs` | 站内页面路由与仓库源码定位显示。 | `guideLinks` | VitePress 文档构建 | `pnpm --dir docs-site test` |
+| `docs-site/docs/*.md`、`docs-site/en/docs/*.md` | 复用核心指南页并补充构建、配置、排错、架构与验证页。 | `repoGuideSource` | VitePress 文档构建 | `pnpm --dir docs-site run docs:build` |
 
 ## 覆盖范围
 

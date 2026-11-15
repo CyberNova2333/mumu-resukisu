@@ -30,6 +30,6 @@
 
 实现见[启动迁移](../../native/prestage/stock-migration.h)的 `stock_backup_durable / stock_retire / migrate_stock`，输入依据见[原厂文件记录](../../native/prestage/stock-daemon.json)。[主机模型](../../native/prestage/stock-unit.c)在普通用户的临时文件上注入失败并重试；这验证代码分支，不等于真实断电或设备冷启动验收。
 
-具体使用顺序见 [从输入到回退](../../docs/build-and-use.md)，实现定位见 [代码地图](../code-map.md)。
+具体使用顺序见 [从输入到回退](../../docs-site/docs/index.md)，实现定位见 [代码地图](../code-map.md)。
 
 证据状态：除特别标注外，本页基于当前源码已确认。

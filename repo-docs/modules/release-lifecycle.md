@@ -39,7 +39,7 @@ mumu-resukisu fetch-release --channel prerelease --output inputs/release-review
 
 离线登记器只在新的构建目录输出 `entry.json` 与 `proof.json`，明确记录 `catalogUpdated: false` 和 `deviceUpgradeValidated: false`。登记要求维护者显式确认源码与 APK 的关联，随后通过代码审查更新清单、探针版本及编译输入；启动预置遇到未知 daemon 时保留原件并阻止继续启动。
 
-实际命令和所需工具见[构建与版本登记](../../docs/build-and-use.md)。实现入口位于[发行获取器](../../src/mumu_resukisu/releases.py)、[离线登记器](../../scripts/register-release.py)和[启动支持清单](../../native/prestage/supported-daemons.json)，验证入口为[下载边界测试](../../tests/test_releases.py)与[登记边界测试](../../tests/test_release_registration.py)。
+实际命令和所需工具见[构建与版本登记](../../docs-site/docs/index.md)。实现入口位于[发行获取器](../../src/mumu_resukisu/releases.py)、[离线登记器](../../scripts/register-release.py)和[启动支持清单](../../native/prestage/supported-daemons.json)，验证入口为[下载边界测试](../../tests/test_releases.py)与[登记边界测试](../../tests/test_release_registration.py)。
 
 继续阅读[主流程的输入与审计](../walkthroughs/one-real-run.md)，了解已适配输入怎样成为可回退候选；改代码时使用[职责地图](../code-map.md)。
 

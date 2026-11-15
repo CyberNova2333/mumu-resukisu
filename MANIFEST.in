@@ -1,6 +1,5 @@
 include README.md AGENTS.md CONTRIBUTING.md SECURITY.md THIRD_PARTY.md LICENSE
 recursive-include licenses *.txt
-recursive-include docs *.md
 recursive-include repo-docs *.md
 graft docs-site
 prune docs-site/node_modules

@@ -4,7 +4,7 @@
 
 ## 修改与验证
 
-在 Python 3.11+ 环境执行 `python -m pip install -e .`，然后运行 `python -m unittest discover -s tests -v`。Windows 文件句柄和链接边界需要在 Windows 验证；原生编译与模型验证按[构建与操作](docs/build-and-use.md)单独运行。记录实际退出状态及未覆盖区域，不把主机模型称作模拟器验收。
+在 Python 3.11+ 环境执行 `python -m pip install -e .`，然后运行 `python -m unittest discover -s tests -v`。Windows 文件句柄和链接边界需要在 Windows 验证；原生编译与模型验证按[构建与操作](docs-site/docs/index.md)单独运行。记录实际退出状态及未覆盖区域，不把主机模型称作模拟器验收。
 
 行为、参数或责任边界改变时，前台同步 `repo-docs/` 的相应页面，并在变更记录中写下实际提交锚点与验证。只修改文档样式或导航时运行独立文档站构建，禁止把其成功当作原生构建或设备启动成功。
 
