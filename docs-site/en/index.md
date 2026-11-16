@@ -29,18 +29,6 @@ features:
 This documentation page is an English summary synced from the canonical Chinese technical docs. If you notice terminology or validation nuances that require verification, please check the [Chinese Homepage](/).
 :::
 
-## Quick Entry by Goal
-
-| Goal | Recommended Page | What You Will Learn |
-| --- | --- | --- |
-| Build offline & flash a test instance | [Overview & Build Workflow](/en/docs/) | Linux/WSL native build, VDI partition assembly, and Windows bind/install/restore commands. |
-| Inspect JSON schemas & CLI flags | [Inputs, Contracts & CLI Matrix](/en/docs/configuration) | `profile.json`, `target-profile.json`, `userspace.json`, all 10 `mumu-resukisu` subcommands, and script options. |
-| Understand 3-domain trust boundaries | [System Architecture](/en/docs/architecture) | Isolation between offline build, Windows disk controller, and Android early-boot prestage plus interactive topology. |
-| Trace one reversible run end-to-end | [One Reversible Run Walkthrough](/en/docs/walkthrough) | How candidate handoff, COW block audit, disk binding, and transaction recovery connect. |
-| Clarify system vs data disk scope | [Image & Recovery Boundaries](/en/docs/image-boundaries) | Why `restore` reverts only the private system diff VDI while durable stock backups live on `/data`. |
-| Check staged validation & source files | [Staged Validation & Decisions](/en/docs/validation) · [Code Map](/en/docs/code-map) | Confirmed vs uncovered verification scope and directory-level Python/C/test ownership. |
-| Diagnose fingerprint or lock failures | [Troubleshooting & FAQ](/en/docs/faq) | Why signature mismatches, unstable shutdowns, Win32 lock errors, or unknown daemons halt cleanly. |
-
 ## Interactive Architecture Diagram
 
 <div class="archify-diagram-card" style="margin: 1.5rem 0; border: 1px solid var(--vp-c-border); border-radius: 12px; overflow: hidden; background: var(--vp-c-bg-soft); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
@@ -64,4 +52,11 @@ python -m pip install -e .
 python -m unittest discover -s tests -v
 ```
 
-For full local inputs, native Linux/WSL compilation, VDI candidate auditing, and Windows instance installation, continue to [Overview & Build Workflow](/en/docs/).
+## Documentation Guide
+
+::: tip Quick Navigation by Goal
+- **Build offline & flash a test instance**: Start with [Overview & Build Workflow](/en/docs/) for Linux/WSL native build, VDI partition assembly, and Windows bind/install/restore commands;
+- **Inspect JSON schemas & diagnose errors**: Read [Inputs, Contracts & CLI Matrix](/en/docs/configuration) and [Troubleshooting & FAQ](/en/docs/faq) for all 10 `mumu-resukisu` subcommands and failure diagnostics;
+- **Understand 3-domain trust & recovery boundaries**: See [System Architecture](/en/docs/architecture), [One Reversible Run Walkthrough](/en/docs/walkthrough), and [Image & Recovery Boundaries](/en/docs/image-boundaries);
+- **Check staged validation & source files**: Explore [Staged Validation & Decisions](/en/docs/validation) and [Code Map](/en/docs/code-map).
+:::

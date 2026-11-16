@@ -42,7 +42,7 @@ export default defineConfig({
         ],
         sidebar: [
           {
-            text: '1. 起步与构建安装',
+            text: '起步与构建安装',
             items: [
               { text: '项目全貌与完整构建流程', link: '/docs/' },
               { text: '输入契约、配置与脚本参数', link: '/docs/configuration' },
@@ -50,7 +50,7 @@ export default defineConfig({
             ],
           },
           {
-            text: '2. 镜像安全边界与校验契约',
+            text: '镜像边界与校验契约',
             items: [
               { text: '系统架构与数据流全景', link: '/docs/architecture' },
               { text: '一次可回退安装全流程', link: '/docs/walkthrough' },
@@ -59,7 +59,7 @@ export default defineConfig({
             ],
           },
           {
-            text: '3. 源码导览与版本迁移',
+            text: '源码导览与版本迁移',
             items: [
               { text: '代码地图', link: '/docs/code-map' },
               { text: '阶段验证与架构决策', link: '/docs/validation' },
@@ -95,7 +95,7 @@ export default defineConfig({
         ],
         sidebar: [
           {
-            text: '1. Getting Started & Build',
+            text: 'Getting Started & Build',
             items: [
               { text: 'Overview & Build Workflow', link: '/en/docs/' },
               { text: 'Inputs, Contracts & CLI Matrix', link: '/en/docs/configuration' },
@@ -103,7 +103,7 @@ export default defineConfig({
             ],
           },
           {
-            text: '2. Boundaries & Safety Contracts',
+            text: 'Boundaries & Safety Contracts',
             items: [
               { text: 'System Architecture', link: '/en/docs/architecture' },
               { text: 'One Reversible Run Walkthrough', link: '/en/docs/walkthrough' },
@@ -112,7 +112,7 @@ export default defineConfig({
             ],
           },
           {
-            text: '3. Code Map & Validation',
+            text: 'Code Map & Validation',
             items: [
               { text: 'Code Map', link: '/en/docs/code-map' },
               { text: 'Staged Validation & Decisions', link: '/en/docs/validation' },

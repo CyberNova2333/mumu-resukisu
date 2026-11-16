@@ -25,18 +25,6 @@ features:
     details: Windows 控制器连续三次确认目标实例已停机且内置 Root 关闭后获取独占写句柄，保存完整原盘备份并支持基于事务号的精确恢复。
 ---
 
-## 按身份 / 目标快速入口
-
-| 你的身份与目标 | 优先阅读入口 | 读完后获得什么 |
-| --- | --- | --- |
-| 首次构建并写入测试实例 | [项目全貌与完整构建流程](/docs/) | Linux/WSL 离线构建、分区重组与 Windows 绑定安装/回退命令链。 |
-| 核对 JSON 契约与命令行参数 | [输入契约、配置与脚本参数](/docs/configuration) | `profile.json`、`target-profile.json`、`userspace.json` 与 10 个 CLI 子命令说明。 |
-| 理解三域隔离与安全红线 | [系统架构与数据流全景](/docs/architecture) | 离线构建、Windows 写盘控制与 Android 早期启动预置的三域边界与交互图。 |
-| 评估一次可回退候选交接 | [一次可回退安装全流程](/docs/walkthrough) | 从输入核验、整盘审计到写盘事务与故障恢复的端到端衔接机制。 |
-| 判断镜像字节与数据盘边界 | [镜像变化与恢复边界](/docs/image-boundaries) | 系统盘回退与数据盘原厂 `/system/xbin/dusk` 持久备份的分离约束。 |
-| 查看已验收阶段与代码定位 | [阶段验证与架构决策](/docs/validation) · [代码地图](/docs/code-map) | 分阶段实机检查范围、明确未覆盖项与逐目录源码/测试定位。 |
-| 排查拒绝报错或构建门禁失败 | [常见问题与排错诊断](/docs/faq) | 指纹拒绝、写锁冲突、未知 daemon 阻止启动与符号缺失的诊断路径。 |
-
 ## 架构拓扑全景
 
 <div class="archify-diagram-card" style="margin: 1.5rem 0; border: 1px solid var(--vp-c-border); border-radius: 12px; overflow: hidden; background: var(--vp-c-bg-soft); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
@@ -60,4 +48,11 @@ python -m pip install -e .
 python -m unittest discover -s tests -v
 ```
 
-完整的本地输入准备、原生与用户态编译、VDI 候选重组及 Windows 实例绑定安装步骤，请直接前往 [起步与完整构建流程](/docs/)。
+## 文档分层导航
+
+::: tip 按照读者需求快速跳转
+- **首次构建并写入测试实例**：阅读 [项目全貌与完整构建流程](/docs/)，走通 Linux/WSL 离线构建、分区重组与 Windows 绑定安装/回退命令链；
+- **核对 JSON 契约与排查报错**：查阅 [输入契约、配置与脚本参数](/docs/configuration) 与 [常见问题与排错诊断](/docs/faq)，核对 `profile.json`、10 个 CLI 子命令与指纹拒绝诊断；
+- **理解三域隔离、走查与恢复边界**：查阅 [系统架构与数据流全景](/docs/architecture)、[一次可回退安装全流程](/docs/walkthrough) 与 [镜像变化与恢复边界](/docs/image-boundaries)；
+- **查看已验收阶段与代码定位**：查阅 [阶段验证与架构决策](/docs/validation) 与 [代码地图](/docs/code-map)。
+:::
