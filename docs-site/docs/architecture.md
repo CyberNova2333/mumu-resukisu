@@ -4,17 +4,12 @@ MuMu ReSukiSU 将高风险的虚拟机磁盘修改拆分为三个职责隔离的
 
 ## 交互式架构全景图
 
-<div class="archify-diagram-card" style="margin: 1.5rem 0; border: 1px solid var(--vp-c-border); border-radius: 12px; overflow: hidden; background: var(--vp-c-bg-soft); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
-  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; background: var(--vp-c-bg-elv); border-bottom: 1px solid var(--vp-c-border); font-size: 13px;">
-    <span style="font-weight: 600; color: var(--vp-c-text-1); display: flex; align-items: center; gap: 8px;">
-      <span>📐</span> MuMu-ResuKSU 架构拓扑图（支持平移、缩放、节点属性探查）
-    </span>
-    <a href="/diagrams/resukisu-architecture.html" target="_blank" rel="noreferrer" style="font-size: 12px; color: var(--vp-c-brand-1); text-decoration: none; font-weight: 500;">
-      在新窗口全屏打开 ↗
-    </a>
-  </div>
-  <iframe src="/diagrams/resukisu-architecture.html" width="100%" height="580px" frameborder="0" style="display: block; border: none;" allowfullscreen loading="lazy"></iframe>
-</div>
+<DiagramFrame
+  src="/diagrams/resukisu-architecture.html"
+  title="MuMu-ResuKSU 架构拓扑图（支持平移、缩放、节点属性探查）"
+  aspect="950 / 308"
+  new-tab-label="在新窗口全屏打开 ↗"
+/>
 
 ## 三域分层与安全边界
 

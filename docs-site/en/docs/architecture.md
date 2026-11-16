@@ -8,17 +8,12 @@ MuMu ReSukiSU isolates untrusted offline image preparation from privileged host 
 
 ## Interactive Architecture Diagram
 
-<div class="archify-diagram-card" style="margin: 1.5rem 0; border: 1px solid var(--vp-c-border); border-radius: 12px; overflow: hidden; background: var(--vp-c-bg-soft); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
-  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; background: var(--vp-c-bg-elv); border-bottom: 1px solid var(--vp-c-border); font-size: 13px;">
-    <span style="font-weight: 600; color: var(--vp-c-text-1); display: flex; align-items: center; gap: 8px;">
-      <span>📐</span> MuMu-ResuKSU Interactive Topology (pan, zoom, inspect)
-    </span>
-    <a href="/diagrams/resukisu-architecture.html" target="_blank" rel="noreferrer" style="font-size: 12px; color: var(--vp-c-brand-1); text-decoration: none; font-weight: 500;">
-      Open Fullscreen ↗
-    </a>
-  </div>
-  <iframe src="/diagrams/resukisu-architecture.html" width="100%" height="580px" frameborder="0" style="display: block; border: none;" allowfullscreen loading="lazy"></iframe>
-</div>
+<DiagramFrame
+  src="/diagrams/resukisu-architecture.html"
+  title="MuMu-ResuKSU Interactive Topology (pan, zoom, inspect)"
+  aspect="950 / 308"
+  new-tab-label="Open Fullscreen ↗"
+/>
 
 ## Three-Domain Isolation
 
