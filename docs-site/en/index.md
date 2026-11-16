@@ -10,11 +10,11 @@ hero:
       text: Build & Install
       link: /en/docs/
     - theme: alt
+      text: API & CLI Reference
+      link: /en/api-reference/
+    - theme: alt
       text: Architecture & Boundaries
       link: /en/docs/architecture
-    - theme: alt
-      text: GitHub Repository
-      link: https://github.com/CyberNova2333/mumu-resukisu
 
 features:
   - title: Strict Target Fingerprint Guard
@@ -24,6 +24,18 @@ features:
   - title: Exclusive Write & Atomic Rollback
     details: Confirms three consecutive instance shutdowns and built-in root disablement, opens the private diff disk with Win32 share=0 locks, persists rollback.vdi, and restores by transaction ID.
 ---
+
+::: info Delivered Capabilities (How Far It Goes)
+- Builds `kernelsu.ko`, `driver-init` (`vermagic=6.1.90-perf+ `, `235` kernel symbols), `resukisu-migrate-prestage` (ASAN/UBSAN host suite), and patched `boot`/`system`/`vendor` images offline on Linux/WSL.
+- Audits every `2,465,270,784` logical byte across VDI 1 MiB COW semantics and executes Win32 `CreateFileW(share=0)` transactional flashing (`rollback.vdi` + atomic `restore`) on Windows.
+- Browse every subcommand, build script, and schema contract interactively in [API & CLI Reference](/en/api-reference/).
+:::
+
+::: warning Explicit Non-Goals & Hard Boundaries
+- **Strictly locked to fingerprinted MuMu Android 15 `x86_64`**: Rejects Android 12 or un-fingerprinted images; never tamper with digest checks or accept unverified 32-bit daemons.
+- **No bundled binaries & platform-split checks**: `inputs/` must contain user-supplied snapshots/`ksud`/`dusk`; Linux `unittest` skips `29` Win32 handle tests, and `refactoredDeviceValidation` remains `false`.
+- **No auto-reboot & `/data`-safe restore**: `fetch-release` and `register-release.py` (`catalogUpdated: false`) never mutate pinned build targets; `scripts/build-frida.py` remains optional/standalone.
+:::
 
 ::: warning AI Translation Notice
 This documentation page is an English summary synced from the canonical Chinese technical docs. If you notice terminology or validation nuances that require verification, please check the [Chinese Homepage](/).

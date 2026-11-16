@@ -4,7 +4,7 @@
 This documentation page is an English summary synced from the canonical Chinese build guide. Please refer to the [Chinese Build Guide](/docs/) for full phrasing.
 :::
 
-`mumu-resukisu` targets a single fingerprinted **MuMu Android 15 `x86_64`** emulator engine. It enforces offline verification of native kernel modules, early-boot prestage binaries, and whole-disk VDI COW images before permitting exclusive-handle single-instance flashing on Windows. No original kernels, VM disks, manager APKs, or external toolchains are bundled in this repository.
+`mumu-resukisu` targets a single fingerprinted **MuMu Android 15 `x86_64`** emulator engine. It enforces offline verification of native kernel modules, early-boot prestage binaries, and whole-disk VDI COW images before permitting exclusive-handle single-instance flashing on Windows. No original kernels, VM disks, manager APKs, or external toolchains are bundled in this repository. For per-command flags and schema gates, see [API & CLI Reference](/en/api-reference/).
 
 ## Platform Separation & Prerequisites
 

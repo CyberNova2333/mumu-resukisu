@@ -10,11 +10,11 @@ hero:
       text: 起步与完整构建
       link: /docs/
     - theme: alt
+      text: API 与 CLI 参考
+      link: /api-reference/
+    - theme: alt
       text: 架构与安全边界
       link: /docs/architecture
-    - theme: alt
-      text: GitHub 仓库
-      link: https://github.com/CyberNova2333/mumu-resukisu
 
 features:
   - title: 固定目标指纹守卫
@@ -24,6 +24,18 @@ features:
   - title: 独占写盘与原子回退
     details: Windows 控制器连续三次确认目标实例已停机且内置 Root 关闭后获取独占写句柄，保存完整原盘备份并支持基于事务号的精确恢复。
 ---
+
+::: info 它能做到什么程度（已实现能力）
+- 在 Linux/WSL 下离线完成 `kernelsu.ko`、`driver-init`（`vermagic=6.1.90-perf+ `、`235` 个外部符号核对）、`resukisu-migrate-prestage` 与 `boot`/`system`/`vendor` 分区制备，并在主机跑通 ASAN/UBSAN 与 32 位模型自测。
+- 跨平台离线按 VDI COW 1 MiB 块语义重读并审计全部 `2,465,270,784` 逻辑字节；Windows 端通过 `MuMuManager.exe` 与 `CreateFileW(share=0)` 完成可逆 `rollback.vdi` 事务写入与原子恢复。
+- 所有 `10` 个 `mumu-resukisu` 主包子命令、`8` 组辅助脚本与 JSON 契约集中在 [API 与 CLI 参考](/api-reference/) 供交互检索。
+:::
+
+::: warning 明确不做什么（边界与硬限制）
+- **不支持 Android 12 或未知 MuMu 引擎**：唯一面向指纹锁死的 MuMu Android 15 `x86_64` 目标快照；严禁修改摘要跳过指纹校验。
+- **不分发磁盘/内核/APK，也不代跑 Windows 独占锁于 Linux**：原始 `base.vdi`、`source.vdi` 与 `ksud` 须自备；Linux `unittest` 会跳过 `29` 项 Win32 锁用例，且当前 `refactoredDeviceValidation` 为 `false`。
+- **写后不自动重启、恢复不触碰 `/data`**：`fetch-release` 与 `register-release.py`（`catalogUpdated: false`）均不改写固定目标；`scripts/build-frida.py` 尚属独立可选辅助工具。
+:::
 
 ## 架构拓扑全景
 

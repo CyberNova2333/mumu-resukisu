@@ -3,7 +3,7 @@
 `mumu-resukisu` 面向指纹固定的 MuMu Android 15 `x86_64` 模拟器引擎，提供一条先离线验证、后绑定单实例写入且可按事务恢复原系统盘的 Root 镜像构建工具链。仓库不分发原始内核、系统磁盘、第三方 APK 或已编译工具链，所有本地输入均由使用者在受忽略目录自行准备。
 
 ::: warning 严格作用域边界
-所有构建与写入步骤默认先对照 `targets/mumu-android15-x86_64/profile.json` 与 `native/driver/target-profile.json` 中的指纹和容量门禁。发现任何指纹、分区边界或未定义符号集合不匹配时，应当立即停止，禁止通过手动放宽期望摘要强行放行未知引擎或 Android 12 目标。
+所有构建与写入步骤默认先对照 `targets/mumu-android15-x86_64/profile.json` 与 `native/driver/target-profile.json` 中的指纹和容量门禁。发现任何指纹、分区边界或未定义符号集合不匹配时，应当立即停止，禁止通过手动放宽期望摘要强行放行未知引擎或 Android 12 目标。各子命令、脚本与 JSON 契约的检索示例可直达 [API 与 CLI 参考](/api-reference/)。
 :::
 
 ## 运行环境与跨平台分工

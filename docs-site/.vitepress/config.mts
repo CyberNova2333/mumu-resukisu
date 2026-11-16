@@ -38,7 +38,7 @@ export default defineConfig({
           { text: '起步与构建', link: '/docs/' },
           { text: '架构与边界', link: '/docs/architecture' },
           { text: '源码与验证', link: '/docs/code-map' },
-          { text: 'GitHub', link: 'https://github.com/CyberNova2333/mumu-resukisu' },
+          { text: 'API 与 CLI', link: '/api-reference/' },
         ],
         sidebar: [
           {
@@ -46,6 +46,7 @@ export default defineConfig({
             items: [
               { text: '项目全貌与完整构建流程', link: '/docs/' },
               { text: '输入契约、配置与脚本参数', link: '/docs/configuration' },
+              { text: 'API 与 CLI 参考（Apifox 视图）', link: '/api-reference/' },
               { text: '常见排错与边界 FAQ', link: '/docs/faq' },
             ],
           },
@@ -91,7 +92,7 @@ export default defineConfig({
           { text: 'Build & Install', link: '/en/docs/' },
           { text: 'Architecture', link: '/en/docs/architecture' },
           { text: 'Code & Validation', link: '/en/docs/code-map' },
-          { text: 'GitHub', link: 'https://github.com/CyberNova2333/mumu-resukisu' },
+          { text: 'API & CLI', link: '/en/api-reference/' },
         ],
         sidebar: [
           {
@@ -99,6 +100,7 @@ export default defineConfig({
             items: [
               { text: 'Overview & Build Workflow', link: '/en/docs/' },
               { text: 'Inputs, Contracts & CLI Matrix', link: '/en/docs/configuration' },
+              { text: 'API & CLI Reference', link: '/en/api-reference/' },
               { text: 'Troubleshooting & FAQ', link: '/en/docs/faq' },
             ],
           },
@@ -134,5 +136,6 @@ export default defineConfig({
   },
   themeConfig: {
     search: { provider: 'local' },
+    socialLinks: [{ icon: 'github', link: 'https://github.com/CyberNova2333/mumu-resukisu' }],
   },
 })

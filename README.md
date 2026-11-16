@@ -3,9 +3,19 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](pyproject.toml)
 [![License: AGPLv3 & GPLv2](https://img.shields.io/badge/License-AGPLv3%20%2F%20GPLv2--only-orange.svg)](THIRD_PARTY.md)
 
-[在线文档站](https://cybernova2333.github.io/mumu-resukisu/docs/) · [English Docs](docs-site/en/index.md) · [工程指南](repo-docs/README.md) · [构建与操作](docs-site/docs/index.md) · [阶段验证](docs-site/docs/validation.md)
+[在线文档站](https://cybernova2333.github.io/mumu-resukisu/docs/) · [API 与 CLI 参考](docs-site/api-reference/index.md) · [English Docs](docs-site/en/index.md) · [工程指南](repo-docs/README.md) · [构建与操作](docs-site/docs/index.md) · [阶段验证](docs-site/docs/validation.md)
 
-面向指纹匹配的 **MuMu Android 15 `x86_64`** 模拟器引擎，提供离线的 ReSukiSU 内核模块与用户态工具构建、整盘 VDI COW 字节审计与 Windows 独占句柄单实例可回退安装流程。仅支持严格匹配指纹的固定目标快照，不提供 Android 12 或未知内核的自动适配能力。
+面向指纹匹配的 **MuMu Android 15 `x86_64`** 模拟器引擎，提供离线的 ReSukiSU 内核模块与用户态工具构建、整盘 VDI COW 字节审计与 Windows 独占句柄单实例可回退安装流程。
+
+## 能力边界与明确非目标
+
+- **能做到什么程度**：
+  - 在 Linux/WSL 完成 `kernelsu.ko`（`vermagic=6.1.90-perf+ `、`235` 个外部符号核对）、`driver-init`、`resukisu-migrate-prestage` 及 `boot`/`system`/`vendor` 分区制备，并通过 ASAN/UBSAN 与 32 位宿主模型测试；
+  - 跨平台按 VDI 1 MiB COW 语义重读全部 `2,465,270,784` 虚拟字节证明零越界写入；Windows 端确认三次停机与内置 Root 关闭后经 `CreateFileW(share=0)` 写入并支持凭 `rollback.vdi` 原盘恢复。
+- **明确不做什么**：
+  - **仅支持唯一固定指纹快照**：不支持 Android 12 或未知 MuMu 版本；严禁修改摘要跳过校验，也不支持 `supported-daemons.json` 之外的未知/32 位 daemon；
+  - **不分发镜像且 `refactoredDeviceValidation` 仍为 `false`**：仓库不含原盘/内核/APK；Linux 下 `unittest` 跳过 `29` 项 Win32 锁用例；`fetch-release` 与 `register-release.py`（`catalogUpdated: false`）不会自动升级固定构建目标；
+  - **写盘不自动重启、恢复不动 `/data`**：`scripts/build-frida.py` 仅作可选实验辅助脚本；全命令参数见 [API 与 CLI 参考](docs-site/api-reference/index.md)。
 
 ## 核心能力与执行流
 
@@ -69,7 +79,7 @@ mumu-resukisu profile --profile targets/mumu-android15-x86_64/profile.json
 | 你的目标 | 文档站专题 | 工程指南深入入口 |
 | --- | --- | --- |
 | 准备本地输入、依赖工具并走完构建写入 | [项目全貌与完整构建流程](docs-site/docs/index.md) | [一次可回退安装全流程](repo-docs/walkthroughs/one-real-run.md) |
-| 查阅 `profile.json`、`userspace.json` 与脚本参数 | [输入契约、配置与脚本参数](docs-site/docs/configuration.md) | [代码地图](repo-docs/code-map.md) |
+| 查阅 `profile.json`、`userspace.json` 与脚本参数 | [输入契约、配置与脚本参数](docs-site/docs/configuration.md) · [API 与 CLI 参考](docs-site/api-reference/index.md) | [代码地图](repo-docs/code-map.md) |
 | 查看三域拓扑交互图与安全边界假设 | [系统架构与数据流全景](docs-site/docs/architecture.md) | [镜像变化与恢复边界](repo-docs/modules/image-boundaries.md) |
 | 排查指纹报错、写锁冲突或 Linux 用例跳过 | [常见问题与排错诊断](docs-site/docs/faq.md) | [文档质量复核](repo-docs/references/quality-review.md) |
 | 核对各阶段实测范围、未覆盖项与源码台账 | [阶段验证与架构决策](docs-site/docs/validation.md) | [源码证据台账](repo-docs/references/source-evidence.md) |
