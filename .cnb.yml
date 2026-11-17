@@ -11,9 +11,7 @@
   script: |
     set -eu
     corepack enable
-    pnpm --dir docs-site install --frozen-lockfile
-    pnpm --dir docs-site test
-    pnpm --dir docs-site run docs:build
+    (cd docs-site && pnpm install --frozen-lockfile && pnpm test && pnpm run docs:build)
     test -f docs-site/.vitepress/dist/index.html
 
 main:
