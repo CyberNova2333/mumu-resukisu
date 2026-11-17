@@ -1,9 +1,17 @@
-# MuMu ReSukiSU
+<h1 align="center">MuMu ReSukiSU</h1>
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](pyproject.toml)
-[![License: AGPLv3 & GPLv2](https://img.shields.io/badge/License-AGPLv3%20%2F%20GPLv2--only-orange.svg)](THIRD_PARTY.md)
+<p align="center">
+  <strong>面向固定 MuMu 引擎的 Root 适配、离线构建与可回退安装工具</strong>
+</p>
 
-[在线文档站](https://mumu-resukisu.cbnv.me/docs/) · [API 与 CLI 参考](docs-site/api-reference/index.md) · [English Docs](docs-site/en/index.md) · [工程指南](repo-docs/README.md) · [构建与操作](docs-site/docs/index.md) · [阶段验证](docs-site/docs/validation.md)
+<p align="center">
+  <a href="pyproject.toml"><img src="https://img.shields.io/badge/Python-3.11%2B-blue.svg" alt="Python 3.11+" /></a>
+  <a href="THIRD_PARTY.md"><img src="https://img.shields.io/badge/License-AGPLv3%20%2F%20GPLv2--only-orange.svg" alt="License: AGPLv3 &amp; GPLv2" /></a>
+</p>
+
+<p align="center">
+  <a href="https://mumu-resukisu.cbnv.me/docs/">在线文档站</a> · <a href="docs-site/api-reference/index.md">API 与 CLI 参考</a> · <a href="docs-site/en/index.md">English Docs</a> · <a href="repo-docs/README.md">工程指南</a> · <a href="docs-site/docs/index.md">构建与操作</a> · <a href="docs-site/docs/validation.md">阶段验证</a>
+</p>
 
 面向指纹匹配的 **MuMu Android 15 `x86_64`** 模拟器引擎，提供离线的 ReSukiSU 内核模块与用户态工具构建、整盘 VDI COW 字节审计与 Windows 独占句柄单实例可回退安装流程。
 
