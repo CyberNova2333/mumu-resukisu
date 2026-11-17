@@ -13,8 +13,8 @@
   "featured": false,
   "order": 11,
   "repository": "https://github.com/CyberNova2333/mumu-resukisu",
-  "homepage": "https://cybernova2333.github.io/mumu-resukisu/",
-  "docsUrl": "https://cybernova2333.github.io/mumu-resukisu/docs/",
+  "homepage": "https://mumu-resukisu.cbnv.me",
+  "docsUrl": "https://mumu-resukisu.cbnv.me/docs/",
   "license": "AGPL-3.0-only",
   "primaryLanguage": "Python",
   "techStack": [
@@ -58,5 +58,5 @@
       "en": "Install, rollback, and su checks completed for the target Android 15 x86_64 emulator build."
     }
   },
-  "updatedAt": "2026-11-11"
+  "updatedAt": "2026-11-17"
 }

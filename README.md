@@ -3,7 +3,7 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](pyproject.toml)
 [![License: AGPLv3 & GPLv2](https://img.shields.io/badge/License-AGPLv3%20%2F%20GPLv2--only-orange.svg)](THIRD_PARTY.md)
 
-[在线文档站](https://cybernova2333.github.io/mumu-resukisu/docs/) · [API 与 CLI 参考](docs-site/api-reference/index.md) · [English Docs](docs-site/en/index.md) · [工程指南](repo-docs/README.md) · [构建与操作](docs-site/docs/index.md) · [阶段验证](docs-site/docs/validation.md)
+[在线文档站](https://mumu-resukisu.cbnv.me/docs/) · [API 与 CLI 参考](docs-site/api-reference/index.md) · [English Docs](docs-site/en/index.md) · [工程指南](repo-docs/README.md) · [构建与操作](docs-site/docs/index.md) · [阶段验证](docs-site/docs/validation.md)
 
 面向指纹匹配的 **MuMu Android 15 `x86_64`** 模拟器引擎，提供离线的 ReSukiSU 内核模块与用户态工具构建、整盘 VDI COW 字节审计与 Windows 独占句柄单实例可回退安装流程。
 
