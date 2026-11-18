@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 """Offline Linux/WSL build of the pinned target module and PID1-only loader."""
 # SPDX-License-Identifier: AGPL-3.0-only
 import argparse

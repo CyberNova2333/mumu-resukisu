@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
+// This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 /* Recognized migration source, never a supported executable UAPI entry. */
 #define STOCK_DAEMON_BYTES 3753880U
 #define STOCK_DAEMON_SHA_HEX "c87a4697bb4e1bf52de82271ce73147276e13f9f0607e12970cb5ec095623a78"

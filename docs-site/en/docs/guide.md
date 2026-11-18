@@ -13,4 +13,4 @@ This page is an English entry point synced from the Chinese engineering guide in
 - **Code & Evidence**: [Code Map](/en/docs/code-map) · [Source Evidence](/en/docs/source-evidence) · [Staged Validation & Decisions](/en/docs/validation)
 - **Review, Glossary & History**: [Quality Review](/en/docs/quality-review) · [Glossary](/en/docs/glossary) · [Sync Changelog](/en/docs/change-log)
 
-Independent tools are licensed under **AGPLv3**; inherited kernel patches and `native/images/system-edit.c` retain **GPLv2-only**. See root `THIRD_PARTY.md` for full attributions.
+Independent tools are licensed under **AGPLv3** with Additional Terms (`ADDITIONAL_TERMS.zh-CN.md` / `ADDITIONAL_TERMS.en.md`; assets in `ASSET_LICENSES.md`); inherited kernel patches and `native/images/system-edit.c` retain **GPLv2-only**. See root `THIRD_PARTY.md` for full attributions.

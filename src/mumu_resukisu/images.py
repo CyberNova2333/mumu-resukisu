@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 """Offline VDI COW assembly. Never writes the source or shared parent image.
 
 Format reference: VirtualBox src/VBox/Storage/VDICore.h and VDI.cpp.

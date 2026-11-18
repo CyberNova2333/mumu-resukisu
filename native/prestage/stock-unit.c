@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
+// This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 /* Real temporary files, ordinary host uid; only stat ownership returned for
  * this exact fixture tree is modeled as root. No Android or root execution. */
 #define _GNU_SOURCE

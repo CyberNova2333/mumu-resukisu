@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
+// This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 /* Fixtures stay owned by the ordinary host user. Only their returned uid/gid
  * metadata is modeled as root for exercising the privileged branch offline. */
 #define _GNU_SOURCE

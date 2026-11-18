@@ -1,3 +1,4 @@
+# This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 """Explicit local instance bindings and guarded Windows disk access.
 
 SPDX-License-Identifier: AGPL-3.0-only

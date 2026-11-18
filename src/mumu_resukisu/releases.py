@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
+# This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 """Fetch official release inputs without accepting them into the target catalog."""
 from __future__ import annotations
 

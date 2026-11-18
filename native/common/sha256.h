@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
+// This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 /* Reused exactly from reviewed probe loader. */
 static uint32_t rotr(uint32_t x, unsigned n) { return (x >> n) | (x << (32-n)); }
 static void sha_block(uint32_t h[8], const unsigned char p[64])

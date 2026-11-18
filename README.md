@@ -97,3 +97,5 @@ mumu-resukisu profile --profile targets/mumu-android15-x86_64/profile.json
 - **混合许可证说明**：独立工具脚本、主机控制器与文档采用 **AGPLv3**（见 [LICENSE](LICENSE)）；`native/driver/` 衍生内核补丁与 `native/images/system-edit.c` 保留 **GPLv2-only**。完整组件归属与限制见 [THIRD_PARTY.md](THIRD_PARTY.md) 与 [SECURITY.md](SECURITY.md)。
 - **上游来源**：衍生原生补丁基线源自 `ReSukiSU/ReSukiSU`（官方发布已迁移至 `Baka-SU/BakaSU`）及 Android Common Kernel（ACK）。本项目不分发原始内核、模拟器磁盘镜像或第三方 APK；贡献流程与测试约定见 [CONTRIBUTING.md](CONTRIBUTING.md) 与 [AGENTS.md](AGENTS.md)。
 - **安全红线**：严格隔离受忽略目录 `.local/`、`inputs/`、`build/`、`bindings/` 与 `.state/`，禁止将个人实例身份、原始镜像或本机运行日志提交至公开仓库。
+
+- **附加条款与资产规则**：本项目依据 GNU AGPLv3 第 7 条适用 [`ADDITIONAL_TERMS.zh-CN.md`](ADDITIONAL_TERMS.zh-CN.md)（英文参考译文：[`ADDITIONAL_TERMS.en.md`](ADDITIONAL_TERMS.en.md)，以简体中文完整版正文为准），对来源陈述、修改标识、禁止冒充、扩展模块有条件附加许可及项目标识边界作出补充说明；独立美术、字体与图标许可清单见 [`ASSET_LICENSES.md`](ASSET_LICENSES.md)。第 9.5–9.6 款的附加许可豁免仅对已取得相应版权持有人有效授权的适用材料生效，未取得该等授权的第三方或上游材料仍受其原有有效许可约束。

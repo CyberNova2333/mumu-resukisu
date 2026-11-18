@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
 """Offline, fixed-input dusk replacement. Never opens installed disks for writing."""
 import argparse, datetime, hashlib, json, shutil, struct, subprocess
 from pathlib import Path
