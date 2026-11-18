@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
-// This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and ADDITIONAL_TERMS.zh-CN.md; ref: ADDITIONAL_TERMS.en.md).
+// This file is part of MuMu ReSukiSU and is licensed under GNU AGPLv3 with Additional Terms (see LICENSE and LICENSE-ADDITIONAL_TERMS-zh-CN.md; ref: LICENSE-ADDITIONAL_TERMS-en.md).
 #define DAEMON_BYTES 6001344
 static const unsigned char daemon_sha[32]={0xd9,0x34,0x36,0x27,0xfe,0x3e,0xe8,0x58,0x7f,0x88,0x3a,0xa9,0xb2,0xec,0x56,0xfd,0xe1,0x02,0x55,0x67,0x32,0x6c,0xd1,0x00,0xef,0x52,0x19,0x43,0x6b,0xc5,0xfc,0xe5};
 #define SUPERVISOR_SHA_HEX "5e476e428fe91ec30b553123058d50499fde5d225d6468ac3409d1c61ad0670c"
