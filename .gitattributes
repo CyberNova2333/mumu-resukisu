@@ -1,3 +1,7 @@
 * text=auto eol=lf
 # Patch context must retain the upstream whitespace for exact application.
 *.patch -whitespace
+
+# Exclude documentation site sources and generated diagram bundles from GitHub language statistics.
+docs-site/** linguist-documentation=true
+docs-site/public/diagrams/** linguist-generated=true
