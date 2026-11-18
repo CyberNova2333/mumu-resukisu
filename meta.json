@@ -58,5 +58,8 @@
       "en": "Install, rollback, and su checks completed for the target Android 15 x86_64 emulator build."
     }
   },
+  "additionalTermsConsent": {
+    "CyberNova": true
+  },
   "updatedAt": "2026-11-17"
 }
